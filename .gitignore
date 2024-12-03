@@ -396,3 +396,8 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Advent of Code input files
+inputs/
+Inputs/
+ownership.txt
