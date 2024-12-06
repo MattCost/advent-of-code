@@ -85,7 +85,40 @@ public class Day04 : BaseDay
 
     public override ValueTask<string> Solve_2()
     {
-        return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2");
+        long output = 0;
+        int searchCount = 0;
+        for (int row = 1; row < _rows - 1; row++)
+        {
+            for (int col = 1; col < _cols - 1; col++)
+            {
+                if (_grid.Nodes[row, col] != null && _grid.Nodes[row, col].Value == 'A')
+                {
+                    searchCount++;
+                    output += SearchResultXMAS(row, col);
+                }
+            }
+        }
+
+        Console.WriteLine($"Searched {searchCount} spots and found {output} xmas");
+        return new(output.ToString());
     }
 
+    private long SearchResultXMAS(int row, int col)
+    {
+        // Brute forcing the search, as it was only 8 directions, and 4 chars, so we didn't need to get recursive. Also, the linked matrix was totally unnecessary.
+
+        // 2 M above, 2 S below
+        if (_grid.Nodes[row - 1, col - 1].Value == 'M' && _grid.Nodes[row - 1, col + 1].Value == 'M' && _grid.Nodes[row + 1, col - 1].Value == 'S' && _grid.Nodes[row + 1, col + 1].Value == 'S') return 1;
+
+        // 2 S above, 2 M below
+        if (_grid.Nodes[row - 1, col - 1].Value == 'S' && _grid.Nodes[row - 1, col + 1].Value == 'S' && _grid.Nodes[row + 1, col - 1].Value == 'M' && _grid.Nodes[row + 1, col + 1].Value == 'M') return 1;
+
+        // 2 M left, 2 S right
+        if (_grid.Nodes[row - 1, col - 1].Value == 'M' && _grid.Nodes[row + 1, col - 1].Value == 'M' && _grid.Nodes[row - 1, col + 1].Value == 'S' && _grid.Nodes[row + 1, col + 1].Value == 'S') return 1;
+
+        // 2 S left, 2 M right
+        if (_grid.Nodes[row - 1, col - 1].Value == 'S' && _grid.Nodes[row + 1, col - 1].Value == 'S' && _grid.Nodes[row - 1, col + 1].Value == 'M' && _grid.Nodes[row + 1, col + 1].Value == 'M') return 1;
+
+        return 0;
+    }
 }
