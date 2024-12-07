@@ -69,6 +69,12 @@ public class Day07 : BaseDay
                 {
                     leftOperands.Enqueue(mul);
                 }
+
+                var concat = long.Parse($"{leftOperand}{rightOperand}");
+                if(concat <= target)
+                {
+                    leftOperands.Enqueue(concat);
+                }
             }
         }
 
