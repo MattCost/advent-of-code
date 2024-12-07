@@ -62,13 +62,36 @@ namespace AdventOfCode.Base.Grid8Way
 
 
 
-        public void PrintGrid()
+        public void PrintGrid(int startR = -1, int startC = -1)
         {
             for (int r = 0; r < Rows; r++)
             {
                 for (int c = 0; c < Cols; c++)
                 {
-                    Console.Write($"{Nodes[r, c].Value} ");
+                    if (r == startR && c == startC)
+                    {
+                        Console.Write("^"); //assuming up, bah
+                    }
+                    else
+                    {
+                        var node = Nodes[r, c];
+                        if (!node.Visited)
+                        {
+                            Console.Write($"{Nodes[r, c].Value}");
+                        }
+                        else
+                        {
+                            var upDown = node.PastVisitDirections.Contains(Direction.Up) || node.PastVisitDirections.Contains(Direction.Down);
+                            var leftRight = node.PastVisitDirections.Contains(Direction.Left) || node.PastVisitDirections.Contains(Direction.Right);
+
+                            if (upDown && leftRight)
+                                Console.Write($"+");
+                            else if (upDown)
+                                Console.Write($"|");
+                            else
+                                Console.Write($"-");
+                        }
+                    }
                 }
                 Console.Write("\n");
             }
