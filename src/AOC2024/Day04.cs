@@ -30,7 +30,7 @@ public class Day04 : BaseDay
             }
         }
 
-        _grid.PrintGrid();
+        // _grid.PrintGrid();
         _grid.PopulateEdges();
 
     }

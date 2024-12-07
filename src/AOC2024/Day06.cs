@@ -53,6 +53,7 @@ public class Day06 : BaseDay
         {
             if (node.Visited) output++;
         }
+        // _grid.PrintGrid();
         return new(output.ToString());
     }
 
@@ -65,34 +66,31 @@ public class Day06 : BaseDay
         foreach (var node in baseGrid.Nodes)
         {
             // BRUTE any blank spot can become block
-            // if (node.Value == '.')
-            // {
-            //     addBlocks.Add((node.Row, node.Col));
-            // }
-
-            // Slightly Less brute optimize the number of addition blocks by only placing a block in the way of the guard
-            if (node.Visited && !(node.Row == _startRow && node.Col == _startCol))
+            if (node.Value == '.')
             {
                 addBlocks.Add((node.Row, node.Col));
             }
+
+            // Slightly Less brute optimize the number of addition blocks by only placing a block in the way of the guard
+            // if (node.Visited && !(node.Row == _startRow && node.Col == _startCol))
+            // {
+            //     addBlocks.Add((node.Row, node.Col));
+            // }
         }
 
         int output = 0;
 
         Console.WriteLine($"We have {addBlocks.Count()} positions to check");
-        Parallel.ForEach(addBlocks, newBlock => //doesn't seem to be any faster than a normal foreach. Did the runtime get smart enough to parallelize things?
+        // Parallel.ForEach(addBlocks, newBlock => //doesn't seem to be any faster than a normal foreach. Did the runtime get smart enough to parallelize things?
+        addBlocks.ForEach( newBlock =>  // Don't run in parallel if printing things out
         {
             var grid = GenerateGrid();
             grid.Nodes[newBlock.row, newBlock.col] = new Grid8WayNode<char>('#', newBlock.row, newBlock.col);
             if (TraverseGridChar(grid, _startRow, _startCol, _startDirection))
             {
-                // Console.WriteLine($"Adding a block to row {newBlock.row}, col {newBlock.col} did trap the guard");
-                // grid.PrintGrid();
                 Interlocked.Increment(ref output);
-            }
-            else
-            {
-                // Console.WriteLine($"Adding a block to row {newBlock.row}, col {newBlock.col} didn't trap the guard");
+                // Console.WriteLine($"Adding a block to {newBlock.row},{newBlock.col} trapped the guard");
+                // grid.PrintGrid(_startRow, _startCol);
             }
         });
 
@@ -102,52 +100,47 @@ public class Day06 : BaseDay
     {
         int row = startRow, col = startCol;
         Direction direction = startDirection;
-        while (row >= 0 && row < _grid.Rows && col >= 0 && col < _grid.Cols)
-        {
-            // If we have already been here, going the same direction, we are in a loop.
-            if (_grid.Nodes[row, col].PastVisitDirections.Contains(direction))
-            {
-                return true;
-            }
 
-            // Otherwise save the visit information
-            _grid.Nodes[row, col].Visited = true;
-            _grid.Nodes[row, col].PastVisitDirections.Add(direction);
+        var node = _grid.Nodes[row, col];
+        node.Visited = true;
+        node.PastVisitDirections.Add(direction);
+
+        do
+        {
+            // If we are on the edge, and moving outwards, not in a loop
+            if (row == 0 && direction == Direction.Up) return false;
+            if (row == _rows - 1 && direction == Direction.Down) return false;
+            if (col == 0 && direction == Direction.Left) return false;
+            if (col == _cols - 1 && direction == Direction.Right) return false;
 
             switch (direction)
             {
                 case Direction.Up:
-                    if (row == 0) break;
-                    if (_grid.Nodes[row - 1, col].Value == '#')
+                    if (row > 0 && _grid.Nodes[row - 1, col].Value == '#')
                     {
                         direction = Direction.Right;
-                        _grid.Nodes[row, col].PastVisitDirections.Add(direction);
+                        node.PastVisitDirections.Add(direction);
                     }
                     break;
                 case Direction.Down:
-                    if (row >= _grid.Rows - 1) break;
-                    if (_grid.Nodes[row + 1, col].Value == '#')
+                    if (row < _rows - 1 && _grid.Nodes[row + 1, col].Value == '#')
                     {
                         direction = Direction.Left;
-                        _grid.Nodes[row, col].PastVisitDirections.Add(direction);
+                        node.PastVisitDirections.Add(direction);
                     }
                     break;
                 case Direction.Left:
-                    if (col == 0) break;
-                    if (_grid.Nodes[row, col - 1].Value == '#')
+                    if (col > 0 && _grid.Nodes[row, col - 1].Value == '#')
                     {
                         direction = Direction.Up;
-                        _grid.Nodes[row, col].PastVisitDirections.Add(direction);
-
+                        node.PastVisitDirections.Add(direction);
                     }
                     break;
                 case Direction.Right:
-                    if (col >= _grid.Cols - 1) break;
-                    if (_grid.Nodes[row, col + 1].Value == '#')
+                    if (col < _cols - 1 && _grid.Nodes[row, col + 1].Value == '#')
                     {
                         direction = Direction.Down;
-                        _grid.Nodes[row, col].PastVisitDirections.Add(direction);
-
+                        node.PastVisitDirections.Add(direction);
                     }
                     break;
             }
@@ -167,7 +160,32 @@ public class Day06 : BaseDay
                     col++;
                     break;
             }
+
+            node = _grid.Nodes[row, col];
+
+            // If we have already been here, going the same direction, we are in a loop (right?)
+            if (node.PastVisitDirections.Contains(direction))
+            {
+                return true;
+            }
+
+            node.Visited = true;
+            node.PastVisitDirections.Add(direction);
+
         }
+        while (InBounds(row, col));
+
         return false;
+    }
+
+    private bool InBounds(int row, int col)
+    {
+        if (row < 0) return false;
+        if (row > _rows - 1) return false;
+
+        if (col < 0) return false;
+        if (col > _cols - 1) return false;
+
+        return true;
     }
 }
