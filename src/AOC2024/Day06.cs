@@ -66,23 +66,23 @@ public class Day06 : BaseDay
         foreach (var node in baseGrid.Nodes)
         {
             // BRUTE any blank spot can become block
-            if (node.Value == '.')
-            {
-                addBlocks.Add((node.Row, node.Col));
-            }
-
-            // Slightly Less brute optimize the number of addition blocks by only placing a block in the way of the guard
-            // if (node.Visited && !(node.Row == _startRow && node.Col == _startCol))
+            // if (node.Value == '.')
             // {
             //     addBlocks.Add((node.Row, node.Col));
             // }
+
+            // Slightly Less brute optimize the number of addition blocks by only placing a block in the way of the guard
+            if (node.Visited && !(node.Row == _startRow && node.Col == _startCol))
+            {
+                addBlocks.Add((node.Row, node.Col));
+            }
         }
 
         int output = 0;
 
         Console.WriteLine($"We have {addBlocks.Count()} positions to check");
         // Parallel.ForEach(addBlocks, newBlock => //doesn't seem to be any faster than a normal foreach. Did the runtime get smart enough to parallelize things?
-        addBlocks.ForEach( newBlock =>  // Don't run in parallel if printing things out
+        addBlocks.ForEach(newBlock =>  // Don't run in parallel if printing things out
         {
             var grid = GenerateGrid();
             grid.Nodes[newBlock.row, newBlock.col] = new Grid8WayNode<char>('#', newBlock.row, newBlock.col);
@@ -113,37 +113,47 @@ public class Day06 : BaseDay
             if (col == 0 && direction == Direction.Left) return false;
             if (col == _cols - 1 && direction == Direction.Right) return false;
 
-            switch (direction)
+            bool rotationDone = false;
+            do
             {
-                case Direction.Up:
-                    if (row > 0 && _grid.Nodes[row - 1, col].Value == '#')
-                    {
-                        direction = Direction.Right;
-                        node.PastVisitDirections.Add(direction);
-                    }
-                    break;
-                case Direction.Down:
-                    if (row < _rows - 1 && _grid.Nodes[row + 1, col].Value == '#')
-                    {
-                        direction = Direction.Left;
-                        node.PastVisitDirections.Add(direction);
-                    }
-                    break;
-                case Direction.Left:
-                    if (col > 0 && _grid.Nodes[row, col - 1].Value == '#')
-                    {
-                        direction = Direction.Up;
-                        node.PastVisitDirections.Add(direction);
-                    }
-                    break;
-                case Direction.Right:
-                    if (col < _cols - 1 && _grid.Nodes[row, col + 1].Value == '#')
-                    {
-                        direction = Direction.Down;
-                        node.PastVisitDirections.Add(direction);
-                    }
-                    break;
+                rotationDone = false;
+                switch (direction)
+                {
+                    case Direction.Up:
+                        if (row > 0 && _grid.Nodes[row - 1, col].Value == '#')
+                        {
+                            direction = Direction.Right;
+                            rotationDone = true;
+                        }
+                        break;
+                    case Direction.Down:
+                        if (row < _rows - 1 && _grid.Nodes[row + 1, col].Value == '#')
+                        {
+                            direction = Direction.Left;
+                            rotationDone = true;
+
+                        }
+                        break;
+                    case Direction.Left:
+                        if (col > 0 && _grid.Nodes[row, col - 1].Value == '#')
+                        {
+                            direction = Direction.Up;
+                            rotationDone = true;
+
+                        }
+                        break;
+                    case Direction.Right:
+                        if (col < _cols - 1 && _grid.Nodes[row, col + 1].Value == '#')
+                        {
+                            direction = Direction.Down;
+                            rotationDone = true;
+
+                        }
+                        break;
+                }
+
             }
+            while (rotationDone);
 
             switch (direction)
             {
@@ -162,8 +172,7 @@ public class Day06 : BaseDay
             }
 
             node = _grid.Nodes[row, col];
-
-            // If we have already been here, going the same direction, we are in a loop (right?)
+            // If we have already been here, going the same direction, we are in a loop
             if (node.PastVisitDirections.Contains(direction))
             {
                 return true;
@@ -173,9 +182,8 @@ public class Day06 : BaseDay
             node.PastVisitDirections.Add(direction);
 
         }
-        while (InBounds(row, col));
+        while (true);
 
-        return false;
     }
 
     private bool InBounds(int row, int col)
