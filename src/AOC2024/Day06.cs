@@ -121,6 +121,7 @@ public class Day06 : BaseDay
                     if (_grid.Nodes[row - 1, col].Value == '#')
                     {
                         direction = Direction.Right;
+                        _grid.Nodes[row, col].PastVisitDirections.Add(direction);
                     }
                     break;
                 case Direction.Down:
@@ -128,6 +129,7 @@ public class Day06 : BaseDay
                     if (_grid.Nodes[row + 1, col].Value == '#')
                     {
                         direction = Direction.Left;
+                        _grid.Nodes[row, col].PastVisitDirections.Add(direction);
                     }
                     break;
                 case Direction.Left:
@@ -135,6 +137,8 @@ public class Day06 : BaseDay
                     if (_grid.Nodes[row, col - 1].Value == '#')
                     {
                         direction = Direction.Up;
+                        _grid.Nodes[row, col].PastVisitDirections.Add(direction);
+
                     }
                     break;
                 case Direction.Right:
@@ -142,6 +146,8 @@ public class Day06 : BaseDay
                     if (_grid.Nodes[row, col + 1].Value == '#')
                     {
                         direction = Direction.Down;
+                        _grid.Nodes[row, col].PastVisitDirections.Add(direction);
+
                     }
                     break;
             }
