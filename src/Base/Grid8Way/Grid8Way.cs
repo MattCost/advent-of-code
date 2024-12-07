@@ -18,6 +18,8 @@ namespace AdventOfCode.Base.Grid8Way
         public T Value { get; init; }
         public int Row { get; init; }
         public int Col { get; init; }
+        public bool Visited { get; set; }
+        public List<Direction> PastVisitDirections { get; set; } = new();
 
         public Grid8WayNode(T value, int row, int col)
         {
@@ -55,18 +57,18 @@ namespace AdventOfCode.Base.Grid8Way
 
         public void AddNode(T value, int row, int col)
         {
-            Nodes[row,col] = new Grid8WayNode<T>(value, row, col);
+            Nodes[row, col] = new Grid8WayNode<T>(value, row, col);
         }
 
 
 
         public void PrintGrid()
         {
-            for(int r = 0 ; r < Rows ; r++)
+            for (int r = 0; r < Rows; r++)
             {
-                for( int c=0; c<Cols ; c++)
+                for (int c = 0; c < Cols; c++)
                 {
-                    Console.Write($"{Nodes[r,c].Value} ");
+                    Console.Write($"{Nodes[r, c].Value} ");
                 }
                 Console.Write("\n");
             }
@@ -78,7 +80,7 @@ namespace AdventOfCode.Base.Grid8Way
             {
                 for (int col = 0; col < Cols; col++)
                 {
-                    if(Nodes[row,col] == null) 
+                    if (Nodes[row, col] == null)
                     {
                         continue;
                     }
