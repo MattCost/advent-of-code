@@ -103,6 +103,7 @@ public class Day08 : BaseDay
         PrintOut(antinodeLocations.Distinct());
         return new(output.ToString());
     }
+
     private void PrintOut(IEnumerable<Point> antinodeLocations)
     {
         // Print out the lines
@@ -113,13 +114,12 @@ public class Day08 : BaseDay
             for (int x = 0; x < _maxX; x++)
             {
                 var antenna = _antennas.Where( a => a.X == x && a.Y==y);
-                if(antinodeLocations.Where( a => a.X == x && a.Y==y).Any())
-                {
-                    Console.Write('#');
-                }
-                else if(antenna.Any())
+                if(antenna.Any())
                 {
                     Console.Write($"{antenna.First().Value}");
+                } else if(antinodeLocations.Where( a => a.X == x && a.Y==y).Any())
+                {
+                    Console.Write('#');
                 }
                 else
                 {
@@ -151,7 +151,6 @@ public class Day08 : BaseDay
 
         // Console.WriteLine($"Possible Locations {possible1} and {possible2}");
         return new List<Point> { possible1, possible2 };
-
     }
 
     private bool InBounds(Point point)
@@ -165,7 +164,50 @@ public class Day08 : BaseDay
 
     public override ValueTask<string> Solve_2()
     {
-        return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2");
+        var antinodeLocations = new List<Point>();
+        var signalTypes = _antennas.Select(a => a.Value).Distinct();
+        foreach (var signalType in signalTypes)
+        {
+            var antennas = _antennas.Where(a => a.Value == signalType).ToList();
+            // Console.WriteLine($"Processing {antennas.Count()} antennas of type {signalType}");
+            for (int i = 0; i < antennas.Count() - 1; i++)
+            {
+                for (int j = i + 1; j < antennas.Count(); j++)
+                {
+                    // Console.WriteLine($"Attempting to process pair {i}, {j}");
+                    var nodes = GenerateAntinodes2(antennas[i], antennas[j]);
+                    var validNodes = nodes.Where(InBounds);
+                    // Console.WriteLine($"\tFound {nodes.Count()} node locations, {validNodes.Count()} of which are in-bounds");
+                    antinodeLocations.AddRange(validNodes);
+                }
+            }
+        }
+        var output = antinodeLocations.Distinct(new PointComparer()).Count().ToString();
+        Console.WriteLine($"We have {antinodeLocations.Count()} nodes, {output} of which are at unique locations");
+        PrintOut(antinodeLocations.Distinct());
+        return new(output.ToString());
+
     }
+
+    private IEnumerable<Point> GenerateAntinodes2(Antenna antenna1, Antenna antenna2)
+    {
+
+        var output = new List<Point>();
+        int a = antenna2.Y - antenna1.Y;
+        int b = antenna1.X - antenna2.X;
+        double c = antenna1.Y * (antenna2.X-antenna1.X) - antenna1.X*(antenna2.Y-antenna1.Y);
+        for(int x = 0 ; x<_maxX ; x++)
+        {
+            double y = (-c - (a*x)) / b;
+            var yInt = Convert.ToInt32(y);
+            if(yInt == y)
+            {
+                var point = new Point { X=x, Y=yInt};
+                if(InBounds(point)) output.Add(point);
+            }
+        }
+        return output;
+    }
+
 
 }
