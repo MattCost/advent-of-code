@@ -14,5 +14,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Base\Base.csproj" />
   </ItemGroup>
-
+  
+  <ItemGroup>
+    <Content Include="Inputs\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    </ItemGroup>
 </Project>
