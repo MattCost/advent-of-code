@@ -3,21 +3,19 @@ public class File
     public int Id { get; init; }
     public int FileSize { get; init; }
     public int FirstBlock { get; set; }
-    // public int LastBlock => FirstBlock + (FileSize > 0 ? FileSize - 1 : 0);
     public int LastBlock => FirstBlock + FileSize - 1;
     public int NextBlock => LastBlock + 1;
     public override string ToString()
     {
         return new string($"{Id % 10}"[0], FileSize);
-        // return FileSize > 0 ? new string($"{Id % 10}"[0], FileSize) : "!";
     }
     public long Checksum
     {
         get
         {
             if (FileSize == 0) return 0;
-            var checksum = 0;
-            for (int i = FirstBlock; i <= LastBlock; i++)
+            var checksum = 0L;
+            for (long i = FirstBlock; i <= LastBlock; i++)
             {
                 checksum += i * Id;
             }
@@ -32,7 +30,7 @@ public class Day09 : BaseDay
     List<int> UnsortedFileSystem = new();
     List<int> SortedFileSystem = new();
     SortedDictionary<int, File> OptimizedFileSystem = new();
-    bool printDebug = true;
+    bool printDebug = false;
     public Day09()
     {
         StreamReader sr = new StreamReader(InputFilePath);
