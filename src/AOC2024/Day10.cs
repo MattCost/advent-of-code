@@ -76,7 +76,40 @@ public class Day10 : BaseDay
 
     public override ValueTask<string> Solve_2()
     {
-        return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2");
+                int output = 0;
+        foreach (var trailHead in _trailHeads)
+        {
+            output += UniqueTrails(trailHead);
+        }
+        return new($"{output}");
     }
 
+    private int UniqueTrails(GridNode<int> trailHead)
+    {
+        if (trailHead.Value != 0) return 0;
+
+        int output = 0;
+        Queue<GridNode<int>> nodesToCheck = new();
+        nodesToCheck.Enqueue(trailHead);
+        while (nodesToCheck.Count > 0)
+        {
+            var current = nodesToCheck.Dequeue();
+            if(current.Value == 9)
+            {
+                output++;
+            }
+            else
+            {
+                foreach(var nextStep in current.Edges)
+                {
+                    if(nextStep.Node.Value == current.Value + 1)
+                    {
+                        nodesToCheck.Enqueue(nextStep.Node);
+                    }
+                }
+            }
+        }
+        
+        return output;
+    }
 }
