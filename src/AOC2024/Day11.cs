@@ -70,24 +70,22 @@ public class Day11 : BaseDay
     }
     private static IEnumerable<long> ProcessStone(long stone)
     {
-        if (ProcessStoneCache.TryGetValue(stone,out var output))
+        if (ProcessStoneCache.TryGetValue(stone, out var output))
         {
             return output;
         }
-        
+
         var stringVer = stone.ToString();
         if (stringVer.Length % 2 == 0)
         {
             var left = long.Parse($"{stringVer.Substring(0, stringVer.Length / 2)}");
             var right = long.Parse($"{stringVer.Substring(stringVer.Length / 2, stringVer.Length / 2)}");
-            ProcessStoneCache[stone] = [left, right];
-            return [left, right];
+            return ProcessStoneCache[stone] = [left, right];
         }
         else
         {
-            ProcessStoneCache[stone] = [stone * 2024L];
+            return ProcessStoneCache[stone] = [stone * 2024L];
 
-            return [stone * 2024L];
         }
 
     }
