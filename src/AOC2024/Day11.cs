@@ -2,6 +2,7 @@
 public class Day11 : BaseDay
 {
     string line;
+    int blinkCount = 25;
     public Day11()
     {
         StreamReader sr = new StreamReader(InputFilePath);
@@ -18,7 +19,7 @@ public class Day11 : BaseDay
             Stones.AddLast(stone);
         }
         PrintStones(Stones);
-        for (int i = 0; i < 25; i++)
+        for (int i = 0; i < blinkCount; i++)
         {
             var stone = Stones.First;
             while (stone != null)
@@ -79,7 +80,7 @@ public class Day11 : BaseDay
         long output = 0;
         foreach (var stone in stones)
         {
-            output += StoneCountRecursive(stone, 25);
+            output += StoneCountRecursive(stone, blinkCount);
         }
         return new($"{output}");
     }
@@ -132,164 +133,57 @@ public class Day11 : BaseDay
                     return StoneCountRecursive(1, blinkCount - 1);
             }
 
-            if (stone == 1)
+            switch(stone)
             {
-                // 1-> 2024 -> 20 24 -> 2 0 2 4
-                if (blinkCount == 1) return 1; // 2024
-                if (blinkCount == 2) return 2; // 20 24
-                if (blinkCount == 3) return 4; // 2 0 2 4
-                if (blinkCount > 3) return
-                        StoneCountRecursive(2, blinkCount - 3) +
-                        StoneCountRecursive(0, blinkCount - 3) +
-                        StoneCountRecursive(2, blinkCount - 3) +
-                        StoneCountRecursive(4, blinkCount - 3);
-            }
+                case 0:
+                    return blinkCount switch
+                    {
+                        0 => 1,
+                        _ =>StoneCountRecursive(1, blinkCount-1)
+                    };
+                    
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                    return blinkCount switch
+                    {
+                        1 => 1,
+                        2 => 2,
+                        3 => 4,
+                        _ =>(stone*2024).ToString().Select(c => StoneCountRecursive(int.Parse($"{c}"), blinkCount - 3)).Sum()
+                    };
 
-            if (stone == 2)
-            {
-                //2 -> 4048 -> 40 48 -> 4 0 4 8
-                if (blinkCount == 1) return 1; // 4048
-                if (blinkCount == 2) return 2; // 40 48
-                if (blinkCount == 3) return 4; // 4 0 4 8
-                if (blinkCount > 3)
-                    return StoneCountRecursive(4, blinkCount - 3) +
-                        StoneCountRecursive(0, blinkCount - 3) +
-                        StoneCountRecursive(4, blinkCount - 3) +
-                        StoneCountRecursive(8, blinkCount - 3);
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                    return blinkCount switch
+                    {
+                        1 => 1,
+                        2 => 1,
+                        3 => 2,
+                        4 => 4,
+                        5 => 8,
+                        _ =>(stone*2024*2024).ToString().Select(c => StoneCountRecursive(int.Parse($"{c}"), blinkCount - 5)).Sum()
+                    };
             }
-
-            if (stone == 3)
-            {
-                //3 -> 6072 -> 60 72 -> 6 0 7 2
-                if (blinkCount == 1) return 1; // 6072
-                if (blinkCount == 2) return 2; // 60 72
-                if (blinkCount == 3) return 4; // 6 0 7 2
-                if (blinkCount > 3)
-                    return StoneCountRecursive(6, blinkCount - 3) +
-                        StoneCountRecursive(0, blinkCount - 3) +
-                        StoneCountRecursive(7, blinkCount - 3) +
-                        StoneCountRecursive(2, blinkCount - 3);
-            }
-
-            if (stone == 4)
-            {
-                //4 -> 8096 -> 80 96 -> 8 0 9 6
-                if (blinkCount == 1) return 1;
-                if (blinkCount == 2) return 2;
-                if (blinkCount == 3) return 4;
-                if (blinkCount > 3)
-                    return StoneCountRecursive(8, blinkCount - 3) +
-                        StoneCountRecursive(0, blinkCount - 3) +
-                        StoneCountRecursive(9, blinkCount - 3) +
-                        StoneCountRecursive(6, blinkCount - 3);
-            }
-
-            if (stone == 5)
-            {                                  // 5
-                if (blinkCount == 1) return 1; // 10120
-                if (blinkCount == 2) return 1; // 20482880
-                if (blinkCount == 3) return 2; // 2048 2880
-                if (blinkCount == 4) return 4; // 20 48 28 80
-                if (blinkCount == 5) return 8; // 2 0 4 8 2 8 8 0
-                if (blinkCount > 5) return
-                        StoneCountRecursive(2, blinkCount - 5) +
-                        StoneCountRecursive(0, blinkCount - 5) +
-                        StoneCountRecursive(4, blinkCount - 5) +
-                        StoneCountRecursive(8, blinkCount - 5) +
-                        StoneCountRecursive(2, blinkCount - 5) +
-                        StoneCountRecursive(8, blinkCount - 5) +
-                        StoneCountRecursive(8, blinkCount - 5) +
-                        StoneCountRecursive(0, blinkCount - 5);
-            }
-
-            if (stone == 6)
-            {
-                // 6 -> 12144 -> 24579456 -> 2457 9456 -> 24 57 94 56
-                if (blinkCount == 1) return 1; // 12144
-                if (blinkCount == 2) return 1; // 24579456
-                if (blinkCount == 3) return 2; // 2457 9456
-                if (blinkCount == 4) return 4; // 20 48 28 80
-                if (blinkCount == 5) return 8; // 2 0 4 8 2 8 8 0
-                if (blinkCount > 5) return
-                        StoneCountRecursive(2, blinkCount - 5) +
-                        StoneCountRecursive(4, blinkCount - 5) +
-                        StoneCountRecursive(5, blinkCount - 5) +
-                        StoneCountRecursive(7, blinkCount - 5) +
-                        StoneCountRecursive(9, blinkCount - 5) +
-                        StoneCountRecursive(4, blinkCount - 5) +
-                        StoneCountRecursive(5, blinkCount - 5) +
-                        StoneCountRecursive(6, blinkCount - 5);
-            }
-
-            if (stone == 7)
-            {
-                // 7 -> 14168 -> 28676032 -> 2867 6032 -> 28 67 60 32 -> 2 8 6 7 6 0 3 2
-                if (blinkCount == 1) return 1; // 14168
-                if (blinkCount == 2) return 1; // 28676032
-                if (blinkCount == 3) return 2; // 2867 6032
-                if (blinkCount == 4) return 4; // 28 67 60 32
-                if (blinkCount == 5) return 8; // 2 8 6 7 6 0 3 2
-                if (blinkCount > 5) return
-                        StoneCountRecursive(2, blinkCount - 5) +
-                        StoneCountRecursive(8, blinkCount - 5) +
-                        StoneCountRecursive(6, blinkCount - 5) +
-                        StoneCountRecursive(7, blinkCount - 5) +
-                        StoneCountRecursive(6, blinkCount - 5) +
-                        StoneCountRecursive(0, blinkCount - 5) +
-                        StoneCountRecursive(3, blinkCount - 5) +
-                        StoneCountRecursive(2, blinkCount - 5);
-            }
-
-            if (stone == 8)
-            {
-                // 8 -> 16192 -> 32772608 -> 3277 2608 -> 32 77 26 08 -> 3 2 7 7 2 6 0 8
-                if (blinkCount == 1) return 1; // 16192
-                if (blinkCount == 2) return 1; // 32772608
-                if (blinkCount == 3) return 2; // 3277 2608
-                if (blinkCount == 4) return 4; // 32 77 26 08
-                if (blinkCount == 5) return 8; // 3 2 7 7 2 6 0 8
-                if (blinkCount > 5) return
-                        StoneCountRecursive(3, blinkCount - 5) +
-                        StoneCountRecursive(2, blinkCount - 5) +
-                        StoneCountRecursive(7, blinkCount - 5) +
-                        StoneCountRecursive(7, blinkCount - 5) +
-                        StoneCountRecursive(2, blinkCount - 5) +
-                        StoneCountRecursive(6, blinkCount - 5) +
-                        StoneCountRecursive(0, blinkCount - 5) +
-                        StoneCountRecursive(8, blinkCount - 5);
-            }
-
-            if (stone == 9)
-            {
-                // 9 -> 18216 -> 36869184 -> 3686 9184 -> 36 86 91 84 -> 3 6 8 6 9 1 8 4
-                if (blinkCount == 1) return 1; // 18216
-                if (blinkCount == 2) return 1; // 36869184
-                if (blinkCount == 3) return 2; // 3686 9184
-                if (blinkCount == 4) return 4; // 36 86 91 84
-                if (blinkCount == 5) return 8; // 3 6 8 6 9 1 8 4
-                if (blinkCount > 5) return
-                        StoneCountRecursive(3, blinkCount - 5) +
-                        StoneCountRecursive(6, blinkCount - 5) +
-                        StoneCountRecursive(8, blinkCount - 5) +
-                        StoneCountRecursive(6, blinkCount - 5) +
-                        StoneCountRecursive(9, blinkCount - 5) +
-                        StoneCountRecursive(1, blinkCount - 5) +
-                        StoneCountRecursive(8, blinkCount - 5) +
-                        StoneCountRecursive(4, blinkCount - 5);
-            }
-
-            return 0; //placeholder for compiler
+            throw new Exception("missed a case");
         }
         else if (digitCount % 2 == 0)
         {
-            if (blinkCount == 1) return 2;
+            if (blinkCount == 1)
+                return 2;
+
             var left = long.Parse(stone.ToString().Substring(0, digitCount / 2));
             var right = long.Parse(stone.ToString().Substring(digitCount / 2, digitCount / 2));
             return StoneCountRecursive(left, blinkCount - 1) + StoneCountRecursive(right, blinkCount - 1);
         }
         else
         {
-            if (blinkCount == 1) return 1;
+            if (blinkCount == 1)
+                return 1;
             return StoneCountRecursive(stone * 2024, blinkCount - 1);
         }
     }
