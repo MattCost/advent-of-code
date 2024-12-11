@@ -119,45 +119,143 @@ public class Day11 : BaseDay
 
     private long StoneCountRecursive(long stone, int blinkCount)
     {
-        // if (blinkCount == 0) return 0; //doesn't get hit?
         var digitCount = $"{stone}".Length;
 
         if (digitCount == 1)
         {
-            if (stone == 0)
-            {
-                // 0 -> 1 -> 2024
-                if (blinkCount == 1)
-                    return 1;
-                else
-                    return StoneCountRecursive(1, blinkCount - 1);
-            }
 
-            switch(stone)
+            switch (stone)
             {
                 case 0:
                     return blinkCount switch
                     {
-                        0 => 1,
-                        _ =>StoneCountRecursive(1, blinkCount-1)
+                        1 => 1,
+                        _ => StoneCountRecursive(1, blinkCount - 1)
                     };
-                    
+
                 case 1:
+                    return blinkCount switch
+                    {
+                        1 => 1,
+                        2 => 2,
+                        3 => 4,
+                        _ =>
+                            StoneCountRecursive(2, blinkCount - 3) +
+                            StoneCountRecursive(0, blinkCount - 3) +
+                            StoneCountRecursive(2, blinkCount - 3) +
+                            StoneCountRecursive(4, blinkCount - 3)
+                    };
+
                 case 2:
+                    return blinkCount switch
+                    {
+                        1 => 1,
+                        2 => 2,
+                        3 => 4,
+                        _ =>
+                            StoneCountRecursive(4, blinkCount - 3) +
+                            StoneCountRecursive(0, blinkCount - 3) +
+                            StoneCountRecursive(4, blinkCount - 3) +
+                            StoneCountRecursive(8, blinkCount - 3)
+                    };
+
                 case 3:
+                    return blinkCount switch
+                    {
+                        1 => 1,
+                        2 => 2,
+                        3 => 4,
+                        _ =>
+                            StoneCountRecursive(6, blinkCount - 3) +
+                            StoneCountRecursive(0, blinkCount - 3) +
+                            StoneCountRecursive(7, blinkCount - 3) +
+                            StoneCountRecursive(2, blinkCount - 3)
+                    };
+
                 case 4:
                     return blinkCount switch
                     {
                         1 => 1,
                         2 => 2,
                         3 => 4,
-                        _ =>(stone*2024).ToString().Select(c => StoneCountRecursive(int.Parse($"{c}"), blinkCount - 3)).Sum()
+                        _ =>
+                            StoneCountRecursive(8, blinkCount - 3) +
+                            StoneCountRecursive(0, blinkCount - 3) +
+                            StoneCountRecursive(9, blinkCount - 3) +
+                            StoneCountRecursive(6, blinkCount - 3)
                     };
 
                 case 5:
+                    return blinkCount switch
+                    {
+                        1 => 1,
+                        2 => 1,
+                        3 => 2,
+                        4 => 4,
+                        5 => 8,
+                        _ =>
+                            StoneCountRecursive(2, blinkCount - 5) +
+                            StoneCountRecursive(0, blinkCount - 5) +
+                            StoneCountRecursive(4, blinkCount - 5) +
+                            StoneCountRecursive(8, blinkCount - 5) +
+                            StoneCountRecursive(2, blinkCount - 5) +
+                            StoneCountRecursive(8, blinkCount - 5) +
+                            StoneCountRecursive(8, blinkCount - 5) +
+                            StoneCountRecursive(0, blinkCount - 5)
+                    };
                 case 6:
+                    return blinkCount switch
+                    {
+                        1 => 1,
+                        2 => 1,
+                        3 => 2,
+                        4 => 4,
+                        5 => 8,
+                        _ =>
+                            StoneCountRecursive(2, blinkCount - 5) +
+                            StoneCountRecursive(4, blinkCount - 5) +
+                            StoneCountRecursive(5, blinkCount - 5) +
+                            StoneCountRecursive(7, blinkCount - 5) +
+                            StoneCountRecursive(9, blinkCount - 5) +
+                            StoneCountRecursive(4, blinkCount - 5) +
+                            StoneCountRecursive(5, blinkCount - 5) +
+                            StoneCountRecursive(6, blinkCount - 5)
+                    };         
                 case 7:
+                    return blinkCount switch
+                    {
+                        1 => 1,
+                        2 => 1,
+                        3 => 2,
+                        4 => 4,
+                        5 => 8,
+                        _ =>
+                            StoneCountRecursive(2, blinkCount - 5) +
+                            StoneCountRecursive(8, blinkCount - 5) +
+                            StoneCountRecursive(6, blinkCount - 5) +
+                            StoneCountRecursive(7, blinkCount - 5) +
+                            StoneCountRecursive(6, blinkCount - 5) +
+                            StoneCountRecursive(0, blinkCount - 5) +
+                            StoneCountRecursive(3, blinkCount - 5) +
+                            StoneCountRecursive(2, blinkCount - 5)
+                    };                                
                 case 8:
+                    return blinkCount switch
+                    {
+                        1 => 1,
+                        2 => 1,
+                        3 => 2,
+                        4 => 4,
+                        5 => 7,
+                        _ =>
+                            StoneCountRecursive(3, blinkCount - 5) +
+                            StoneCountRecursive(2, blinkCount - 5) +
+                            StoneCountRecursive(7, blinkCount - 5) +
+                            StoneCountRecursive(7, blinkCount - 5) +
+                            StoneCountRecursive(2, blinkCount - 5) +
+                            StoneCountRecursive(6, blinkCount - 5) +
+                            StoneCountRecursive(8*2024, blinkCount - 5)
+                    };                
                 case 9:
                     return blinkCount switch
                     {
@@ -166,10 +264,20 @@ public class Day11 : BaseDay
                         3 => 2,
                         4 => 4,
                         5 => 8,
-                        _ =>(stone*2024*2024).ToString().Select(c => StoneCountRecursive(int.Parse($"{c}"), blinkCount - 5)).Sum()
-                    };
+                        _ =>
+                            StoneCountRecursive(3, blinkCount - 5) +
+                            StoneCountRecursive(6, blinkCount - 5) +
+                            StoneCountRecursive(8, blinkCount - 5) +
+                            StoneCountRecursive(6, blinkCount - 5) +
+                            StoneCountRecursive(9, blinkCount - 5) +
+                            StoneCountRecursive(1, blinkCount - 5) +
+                            StoneCountRecursive(8, blinkCount - 5) +
+                            StoneCountRecursive(4, blinkCount - 5)
+                    };   
+                    
+                default:
+                    throw new Exception("missed a case");
             }
-            throw new Exception("missed a case");
         }
         else if (digitCount % 2 == 0)
         {
