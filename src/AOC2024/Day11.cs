@@ -1,5 +1,6 @@
 
 
+using System.Runtime.InteropServices;
 using System.Xml;
 
 public class Day11 : BaseDay
@@ -29,10 +30,7 @@ public class Day11 : BaseDay
         var stoneTracker = new Dictionary<long, long>();
         foreach (var stone in stones)
         {
-            if (!stoneTracker.ContainsKey(stone))
-                stoneTracker[stone] = 0;
-
-            stoneTracker[stone] += 1;
+            CollectionsMarshal.GetValueRefOrAddDefault(stoneTracker, stone, out bool _) += 1;
         }
 
         for (int i = 0; i < blinkCount; i++)
@@ -40,12 +38,9 @@ public class Day11 : BaseDay
             var newStoneTracker = new Dictionary<long, long>();
             foreach (var stoneValue in stoneTracker.Keys)
             {
-                foreach (var newStone in ProcessStone(stoneValue))
+                foreach(var newStone in ProcessStone(stoneValue))
                 {
-                    if (!newStoneTracker.ContainsKey(newStone))
-                        newStoneTracker[newStone] = 0;
-
-                    newStoneTracker[newStone] += stoneTracker[stoneValue];
+                    CollectionsMarshal.GetValueRefOrAddDefault(newStoneTracker, newStone, out bool _) += stoneTracker[stoneValue];
                 }
             }
             stoneTracker = newStoneTracker;
@@ -70,11 +65,11 @@ public class Day11 : BaseDay
     }
     private static IEnumerable<long> ProcessStone(long stone)
     {
-        if (ProcessStoneCache.TryGetValue(stone, out var output))
+        if (ProcessStoneCache.TryGetValue(stone,out var output))
         {
             return output;
         }
-
+        
         var stringVer = stone.ToString();
         if (stringVer.Length % 2 == 0)
         {
@@ -87,6 +82,6 @@ public class Day11 : BaseDay
             return ProcessStoneCache[stone] = [stone * 2024L];
 
         }
-
+        
     }
 }
