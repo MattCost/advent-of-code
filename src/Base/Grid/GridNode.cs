@@ -5,6 +5,8 @@ namespace AdventOfCode.Base.Grid
         public T Value { get; init; }
         public int Row { get; init; }
         public int Col { get; init; }
+        public bool Visited {get;set;}
+        
 
         public GridNode(T value, int row, int col)
         {

@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace AdventOfCode.Base.Grid
 {
 
@@ -19,7 +21,7 @@ namespace AdventOfCode.Base.Grid
             Nodes[row, col] = new GridNode<T>(value, row, col);
         }
 
-        public void PopulateEdges()
+        public void PopulateEdges(bool linkAnyValue = true)
         {
             for (int row = 0; row < Rows; row++)
             {
@@ -29,22 +31,22 @@ namespace AdventOfCode.Base.Grid
                     {
                         continue;
                     }
-                    if (row > 0)
+                    if (row > 0 && (linkAnyValue || Nodes[row, col].Value!.Equals(Nodes[row - 1, col].Value)))
                     {
                         Nodes[row, col].Edges.Add(new GridNodeEdge<T>(Nodes[row - 1, col], Direction.Up));
                     }
 
-                    if (row < Rows - 1)
+                    if (row < Rows - 1 && (linkAnyValue || Nodes[row, col].Value!.Equals(Nodes[row + 1, col].Value)))
                     {
                         Nodes[row, col].Edges.Add(new GridNodeEdge<T>(Nodes[row + 1, col], Direction.Down));
                     }
 
-                    if (col > 0)
+                    if (col > 0 && (linkAnyValue || Nodes[row, col].Value!.Equals(Nodes[row, col - 1].Value)))
                     {
                         Nodes[row, col].Edges.Add(new GridNodeEdge<T>(Nodes[row, col - 1], Direction.Left));
                     }
 
-                    if (col < Cols - 1)
+                    if (col < Cols - 1 && (linkAnyValue || Nodes[row, col].Value!.Equals(Nodes[row, col + 1].Value)))
                     {
                         Nodes[row, col].Edges.Add(new GridNodeEdge<T>(Nodes[row, col + 1], Direction.Right));
                     }
