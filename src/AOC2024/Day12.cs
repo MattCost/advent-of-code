@@ -153,6 +153,8 @@ public class Day12 : BaseDay
                 AAA
                 ABA
                 AAA
+                if every node is on the perimeter, we will miss 1 of the properties.
+                if there is at least 1 node on the interior perimeter(s) if will be found.
             */
 
             var startingNode = nodeInPlot;
