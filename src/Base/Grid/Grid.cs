@@ -1,4 +1,3 @@
-using System.Collections;
 
 namespace AdventOfCode.Base.Grid
 {
@@ -53,6 +52,11 @@ namespace AdventOfCode.Base.Grid
                 }
             }
 
+        }
+
+        public bool PointInBounds(int row, int col)
+        {
+            return row > 0 && col > 0 && row < Rows - 1 && col < Cols - 1;
         }
     }
 
