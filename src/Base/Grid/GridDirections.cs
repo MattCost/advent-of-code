@@ -38,7 +38,7 @@ namespace AdventOfCode.Base.Grid
         {
             return direction switch
             {
-                Direction.Up => Direction.Up,
+                Direction.Up => Direction.Down,
                 Direction.Down => Direction.Up,
                 Direction.Left => Direction.Right,
                 Direction.Right => Direction.Left,
