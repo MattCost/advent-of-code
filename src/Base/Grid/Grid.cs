@@ -1,4 +1,5 @@
 
+
 namespace AdventOfCode.Base.Grid
 {
 
@@ -58,7 +59,33 @@ namespace AdventOfCode.Base.Grid
         {
             return row > 0 && col > 0 && row < Rows - 1 && col < Cols - 1;
         }
+
+        public void PrintGrid(bool showVisited = false)
+        {
+            for (int r = 0; r < Rows; r++)
+            {
+                for (int c = 0; c < Cols; c++)
+                {
+                    var node = Nodes[r, c];
+                    if (showVisited && node.Visited)
+                    {
+                        var character = node.ExitDirection switch
+                        {
+                            Direction.Up => '^',
+                            Direction.Down => 'v',
+                            Direction.Left => '<',
+                            Direction.Right => '>',
+                            _ => '!'
+                        };
+                        Console.Write(character);
+                    }
+                    else
+                    {
+                        Console.Write(node.Value);
+                    }
+                }
+                Console.Write('\n');
+            }
+        }
     }
-
-
 }
