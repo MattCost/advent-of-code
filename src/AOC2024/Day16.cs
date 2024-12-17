@@ -154,8 +154,25 @@ public class Day16 : BaseDay
 
         while (_processingQueue.Count > 0)
         {
+            var copy = new Grid<char>(_maze.Rows, _maze.Cols);
+            for(int r=0 ; r<_maze.Rows ; r++)
+            {
+                for(int c=0; c<_maze.Cols; c++)
+                {
+                    copy.AddNode(_maze.Nodes[r,c].Value,r,c);
+                }
+            }
+            var x = _processingQueue.UnorderedItems;
+            foreach(var y in x)
+            {
+                copy.AddNode('@', y.Element.row, y.Element.col);
+            }
+            // Console.Clear();
+            // copy.PrintGrid();
+            // Console.ReadKey();
+            // Task.Delay(25).Wait();
+            
             var currentInfo = _processingQueue.Dequeue();
-            if(currentInfo.distance > maxDistance) continue;
 
             // if target node break
             if (currentInfo.row == _end.Row && currentInfo.col == _end.Col)
@@ -176,35 +193,23 @@ public class Day16 : BaseDay
                 continue;
             }
 
+            if(currentInfo.distance > maxDistance) continue;
             visited[currentInfo.row, currentInfo.col] = true;
 
             var currentNode = _maze.Nodes[currentInfo.row, currentInfo.col];
             var currentDir = currentInfo.dir;
 
-            foreach (var edge in currentNode.Edges)
+            foreach (var edge in currentNode.Edges.Where(edge => edge.Direction != currentDir.Reverse()))
             {
+                // skip visited nodes
+                if (currentInfo.path.Contains((edge.Node.Row, edge.Node.Col))) continue;
+             
                 // figure out cost to neighbor
-                int newDistance;
-                if (edge.Direction == currentDir)
-                {
-                    newDistance = distances[currentNode.Row, currentNode.Col] + 1;
-                }
-                else
-                {
-                    newDistance = distances[currentNode.Row, currentNode.Col] + 1000 + 1;
-                }
+                int newDistance = currentInfo.distance + (edge.Direction == currentDir ? 1 : 1001);
 
                 // optimal path
                 if (newDistance < distances[edge.Node.Row, edge.Node.Col])
                 {
-                    // skip visited nodes
-                    if (currentInfo.path.Contains((edge.Node.Row, edge.Node.Col))) continue;
-                    // if (visited[edge.Node.Row, edge.Node.Col])
-                    // {
-                    //     if (newDistance < distances[edge.Node.Row, edge.Node.Col])
-                    //         continue;
-                    // }
-
                     distances[edge.Node.Row, edge.Node.Col] = newDistance;
                     var newPath = currentInfo.path.ToList();
                     newPath.Add((currentNode.Row, currentNode.Col));
@@ -212,18 +217,15 @@ public class Day16 : BaseDay
                 }
                 else
                 {
-                    if (newDistance == distances[edge.Node.Row, edge.Node.Col] + 1000)
+                    if (newDistance == distances[edge.Node.Row, edge.Node.Col] || newDistance == distances[edge.Node.Row, edge.Node.Col] + 1000)
                     {
-                        // skip visited nodes
-                        if (currentInfo.path.Contains((edge.Node.Row, edge.Node.Col))) continue;
-
-                        // if (newDistance < distances[edge.Node.Row, edge.Node.Col])
-                        // {
-                        //     distances[edge.Node.Row, edge.Node.Col] = newDistance;
-                        // }
                         var newPath = currentInfo.path.ToList();
                         newPath.Add((currentNode.Row, currentNode.Col));
                         _processingQueue.Enqueue((row: edge.Node.Row, col: edge.Node.Col, dir: edge.Direction, path: newPath, distance: newDistance), newDistance);
+                    }
+                    else
+                    {
+                        Console.Write("x");
                     }
                 }
             }
