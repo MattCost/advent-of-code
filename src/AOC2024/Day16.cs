@@ -7,6 +7,8 @@ public class Day16 : BaseDay
     GridNode<char> _start;
     GridNode<char> _end;
     int[,] distances;
+    List<(int row, int col, Direction dir)> shortestPath = new();
+
     public Day16()
     {
         StreamReader sr = new StreamReader(InputFilePath);
@@ -53,7 +55,9 @@ public class Day16 : BaseDay
 
     public override ValueTask<string> Solve_1()
     {
-        PriorityQueue<(int row, int col, Direction dir), int> _processingQueue = new();
+        // PriorityQueue<(int row, int col, Direction dir, List<(int row, int col)> path, int distance), int> _processingQueue = new();
+
+        PriorityQueue<(int row, int col, Direction dir, List<(int row, int col, Direction dir)> path), int> _processingQueue = new();
 
         bool[,] visited = new bool[_maze.Rows, _maze.Cols];
 
@@ -62,52 +66,45 @@ public class Day16 : BaseDay
         distances[_start.Row, _start.Col] = 0;
 
         // Start off going east
-        _processingQueue.Enqueue((row: _start.Row, col: _start.Col, dir: Direction.Right), 0);
+        _processingQueue.Enqueue((row: _start.Row, col: _start.Col, dir: Direction.Right, path: []), 0);
 
         while (_processingQueue.Count > 0)
         {
             var currentInfo = _processingQueue.Dequeue();
 
-            // if target node break?
-            if (_maze.Nodes[currentInfo.row, currentInfo.col].Value == 'E') break;
-
-            if (visited[currentInfo.row, currentInfo.col])
-                continue;
+            // if target node break
+            if (currentInfo.row == _end.Row && currentInfo.col == _end.Col)
+            {
+                currentInfo.path.Add((currentInfo.row, currentInfo.col, currentInfo.dir));
+                shortestPath = currentInfo.path;
+                break;
+            }
 
             visited[currentInfo.row, currentInfo.col] = true;
 
             var currentNode = _maze.Nodes[currentInfo.row, currentInfo.col];
             var currentDir = currentInfo.dir;
 
-            foreach (var edge in currentNode.Edges)
+            foreach (var edge in currentNode.Edges.Where(edge => edge.Direction != currentDir.Reverse()))
             {
                 // skip visited nodes
                 if (visited[edge.Node.Row, edge.Node.Col]) continue;
 
                 // figure out cost to neighbor
-                int newDistance;
-                if (edge.Direction == currentDir)
-                {
-                    newDistance = distances[currentNode.Row, currentNode.Col] + 1;
-                }
-                else if (edge.Direction == currentDir.Reverse())
-                {
-                    newDistance = distances[currentNode.Row, currentNode.Col] + 1000 + 1000 + 1;
-                }
-                else
-                {
-                    newDistance = distances[currentNode.Row, currentNode.Col] + 1000 + 1;
-                }
+                int newDistance = distances[currentNode.Row, currentNode.Col] + (edge.Direction == currentDir ? 1 : 1001);
 
                 // update distance table if its cheaper  and enqueue the new entry
                 if (newDistance < distances[edge.Node.Row, edge.Node.Col])
                 {
                     distances[edge.Node.Row, edge.Node.Col] = newDistance;
-                    _processingQueue.Enqueue((edge.Node.Row, edge.Node.Col, edge.Direction), newDistance);
+                    var newPath = currentInfo.path.ToList();
+                    newPath.Add((currentNode.Row, currentNode.Col, edge.Direction));
+                    _processingQueue.Enqueue((edge.Node.Row, edge.Node.Col, edge.Direction, newPath), newDistance);
                 }
             }
         }
         var distance = distances[_end.Row, _end.Col];
+        Console.WriteLine($"Shortest path has {shortestPath.Count} steps");
 
         return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 1: {distance}");
     }
@@ -136,9 +133,9 @@ public class Day16 : BaseDay
     public override ValueTask<string> Solve_2()
     {
 
-        PriorityQueue<(int row, int col, Direction dir, List<(int row, int col)> path, int distance), int> _processingQueue = new();
+        PriorityQueue<(int row, int col, Direction dir, List<(int row, int col, Direction dir)> path, int distance), int> _processingQueue = new();
         bool[,] visited = new bool[_maze.Rows, _maze.Cols];
-        bool[,] validVisited = new bool[_maze.Rows, _maze.Cols];
+        int[,] validVisited = new int[_maze.Rows, _maze.Cols];
 
         //Save the maxDistance from part 1
         var maxDistance = distances[_end.Row, _end.Col];
@@ -152,19 +149,19 @@ public class Day16 : BaseDay
 
         while (_processingQueue.Count > 0)
         {
-            var copy = new Grid<char>(_maze.Rows, _maze.Cols);
-            for (int r = 0; r < _maze.Rows; r++)
-            {
-                for (int c = 0; c < _maze.Cols; c++)
-                {
-                    copy.AddNode(_maze.Nodes[r, c].Value, r, c);
-                }
-            }
-            var x = _processingQueue.UnorderedItems;
-            foreach (var y in x)
-            {
-                copy.AddNode('@', y.Element.row, y.Element.col);
-            }
+            // var copy = new Grid<char>(_maze.Rows, _maze.Cols);
+            // for (int r = 0; r < _maze.Rows; r++)
+            // {
+            //     for (int c = 0; c < _maze.Cols; c++)
+            //     {
+            //         copy.AddNode(_maze.Nodes[r, c].Value, r, c);
+            //     }
+            // }
+            // var x = _processingQueue.UnorderedItems;
+            // foreach (var y in x)
+            // {
+            //     copy.AddNode('@', y.Element.row, y.Element.col);
+            // }
             // Console.Clear();
             // copy.PrintGrid();
             // Console.ReadKey();
@@ -180,9 +177,16 @@ public class Day16 : BaseDay
                     //add path to validVisited
                     foreach (var node in currentInfo.path)
                     {
-                        validVisited[node.row, node.col] = true;
+                        if (validVisited[node.row, node.col] == 0)
+                        {
+                            validVisited[node.row, node.col] = 1;
+                        }
+                        else
+                        {
+                            validVisited[node.row, node.col] = 2;
+                        }
                     }
-                    validVisited[currentInfo.row, currentInfo.col] = true;
+                    validVisited[currentInfo.row, currentInfo.col] = 1;
                 }
                 else
                 {
@@ -200,7 +204,7 @@ public class Day16 : BaseDay
             foreach (var edge in currentNode.Edges.Where(edge => edge.Direction != currentDir.Reverse()))
             {
                 // skip visited nodes
-                if (currentInfo.path.Contains((edge.Node.Row, edge.Node.Col))) continue;
+                if (currentInfo.path.Contains((edge.Node.Row, edge.Node.Col, edge.Direction))) continue;
 
                 // figure out cost to neighbor
                 int newDistance = currentInfo.distance + (edge.Direction == currentDir ? 1 : 1001);
@@ -210,33 +214,64 @@ public class Day16 : BaseDay
                 {
                     distances[edge.Node.Row, edge.Node.Col] = newDistance;
                     var newPath = currentInfo.path.ToList();
-                    newPath.Add((currentNode.Row, currentNode.Col));
+                    newPath.Add((currentNode.Row, currentNode.Col, edge.Direction));
                     _processingQueue.Enqueue((row: edge.Node.Row, col: edge.Node.Col, dir: edge.Direction, path: newPath, distance: newDistance), newDistance);
                 }
                 else
                 {
+                    // If we found a spot that is a possible 1 turn ahead lets check
                     if (newDistance == distances[edge.Node.Row, edge.Node.Col] || newDistance == distances[edge.Node.Row, edge.Node.Col] + 1000)
                     {
+
+                        // Hit the shortest path? add it to the valid list
+                        // if (shortestPath.Contains((edge.Node.Row, edge.Node.Col, edge.Direction)))
+                        // {
+                        //     foreach (var node in currentInfo.path)
+                        //     {
+                        //         // validVisited[node.row, node.col]=2;
+                        //         // shortestPath.Add(node);
+                        //     }
+                        //     validVisited[currentInfo.row, currentInfo.col] = 2;
+                        // }
+
+                        // otherwise queue it in case it hits the shortest path later
+
                         var newPath = currentInfo.path.ToList();
-                        newPath.Add((currentNode.Row, currentNode.Col));
+                        newPath.Add((currentNode.Row, currentNode.Col, edge.Direction));
                         _processingQueue.Enqueue((row: edge.Node.Row, col: edge.Node.Col, dir: edge.Direction, path: newPath, distance: newDistance), newDistance);
                     }
-                    else
-                    {
-                        Console.Write("x");
-                    }
+                    // else
+                    // {
+                    //     Console.Write("x");
+                    // }
                 }
             }
+        }
+        foreach(var node in shortestPath)
+        {
+            validVisited[node.row, node.col] = 1;
         }
 
         for (int r = 0; r < _maze.Rows; r++)
         {
             for (int c = 0; c < _maze.Cols; c++)
             {
-
-                if (validVisited[r, c])
+                if (validVisited[r, c] == 1)
                 {
-                    Console.Write('1');
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write('O');
+                    // Console.Write(validVisited[r, c]);
+                }
+                else if (validVisited[r, c] == 2)
+                {
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    Console.Write('o');
+                    // Console.Write(validVisited[r, c]);
+                }
+                else if (_maze.Nodes[r, c].Value == '#')
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.Write("#");
                 }
                 else
                 {
@@ -249,7 +284,7 @@ public class Day16 : BaseDay
         int validNodes = 0;
         foreach (var boo in validVisited)
         {
-            if (boo) validNodes++;
+            if (boo > 0) validNodes++;
 
         }
 
