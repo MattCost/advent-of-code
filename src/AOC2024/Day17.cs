@@ -119,7 +119,7 @@ public class Day17 : BaseDay
         // long regA = 17104405500; //1031612834719; 
 
         var target = string.Join(',', Program);
-        long testA = 6173100802971L; //5207806903195L;32 //1293445854109L;
+        long testA = 6173834806171L; //6173637673883L; //5207806903195L;32 //1293445854109L;
         string output;
         do
         {
@@ -154,7 +154,7 @@ public class Day17 : BaseDay
                 Console.WriteLine($"RegA was {testA}");
                 Console.WriteLine($"Target: {target}");
                 Console.WriteLine($"Output: {output}");
-                testA += 4095L * 4095L * 32;
+                testA += 4095L * 4095L * 256;
             }
             else
             {
