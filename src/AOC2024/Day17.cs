@@ -16,7 +16,7 @@ public class Day17 : BaseDay
         RegC = long.Parse((line = sr.ReadLine())!.Split(':')[1].Trim());
         line = sr.ReadLine();
         Program = (line = sr.ReadLine())!.Split(':')[1].Trim().Split(',').Select(x => int.Parse(x)).ToList();
-        Console.WriteLine($"RegA {RegA}, RegB {RegB}, RegC {RegC}");
+        // Console.WriteLine($"RegA {RegA}, RegB {RegB}, RegC {RegC}");
     }
 
     public override ValueTask<string> Solve_1()
