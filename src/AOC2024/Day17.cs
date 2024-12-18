@@ -1,49 +1,19 @@
 using System.Collections;
 using System.Text;
+using Spectre.Console;
 
 public class Day17 : BaseDay
 {
-    List<string> _lines = new();
     long RegA, RegB, RegC;
-    long RegAinit, RegBinit, RegCinit;
     List<int> Program;
 
     public Day17()
     {
         StreamReader sr = new StreamReader(InputFilePath);
-        // Console.WriteLine("Test Reg B should be 1");
-        // RegC = 9;
-        // Program = [2, 6];
-        // Solve_1();
-        // Console.WriteLine($"RegB {RegB}");
-
-        // Console.WriteLine("Test Should output 0,1,2");
-        // RegA = 10;
-        // Program = [5, 0, 5, 1, 5, 4];
-        // Solve_1();
-
-        // Console.WriteLine("Test Should output 4,2,5,6,7,7,7,7,3,1,0 and A should be 0");
-        // RegA = 2024;
-        // Program = [0, 1, 5, 4, 3, 0];
-        // Solve_1();
-        // Console.WriteLine($"RegA {RegA}");
-
-        // Console.WriteLine("Test Reg B should be 26");
-        // RegB = 29;
-        // Program = [1, 7];
-        // Solve_1();
-        // Console.WriteLine($"RegB {RegB}");
-
-
-        // Console.WriteLine("Test complete");
-
         string? line;
         RegA = long.Parse((line = sr.ReadLine())!.Split(':')[1].Trim());
         RegB = long.Parse((line = sr.ReadLine())!.Split(':')[1].Trim());
         RegC = long.Parse((line = sr.ReadLine())!.Split(':')[1].Trim());
-        RegAinit = RegA;
-        RegBinit = RegB;
-        RegCinit = RegC;
         line = sr.ReadLine();
         Program = (line = sr.ReadLine())!.Split(':')[1].Trim().Split(',').Select(x => int.Parse(x)).ToList();
         Console.WriteLine($"RegA {RegA}, RegB {RegB}, RegC {RegC}");
@@ -114,55 +84,98 @@ public class Day17 : BaseDay
             _ => throw new Exception("invalid Program")
         };
     }
+
+    bool SatisfiesDigit(long input, int digit)
+    {
+        checked
+        {
+            var octalDigit = (int)(input % 8);
+            int shiftCount = 7 - octalDigit;
+            for (int i = 0; i < shiftCount; i++)
+            {
+                input /= 2;
+            }
+            input ^= octalDigit;
+            var result = input % 8;
+            return digit == result;
+        }
+    }
+
+    bool SatisfiesDigitPrevGeneration(long input, int generation, int digit)
+    {
+        checked
+        {
+            for (int i = 0; i < generation; i++)
+            {
+                input = Convert.ToInt64(Math.Truncate(input / 8.0));
+            }
+            return SatisfiesDigit(input, digit);
+        }
+    }
+
+    List<long> FindInputs(int digit, long min, long max)
+    {
+        checked
+        {
+            var offsets = Enumerable.Range(0, (int)(max - min)).Where(offset => SatisfiesDigit(min + offset, digit));
+            return offsets.Select(offset => offset + min).ToList();
+        }
+    }
+
     public override ValueTask<string> Solve_2()
     {
-        // long regA = 17104405500; //1031612834719; 
+        int targetPointer = Program.Count - 2;
+        int generation = 1;
 
-        var target = string.Join(',', Program);
-        long testA = 6173834806171L; //6173637673883L; //5207806903195L;32 //1293445854109L;
-        string output;
-        do
+        List<long> validInputs = [7];
+
+        while (targetPointer >= 0)
         {
-            var _regA = testA;
-            StringBuilder tempOutput = new();
-            do
+            Console.WriteLine($"*************************************************************");
+            Console.WriteLine($"Starting search. Generation {generation}. Target {Program[targetPointer]}. We have {validInputs.Count} valid inputs");
+            var newValidInputs = new List<long>();
+            for (int i = 0; i < validInputs.Count; i++)
             {
-                var a1 = _regA % 8;
-                var outputDigit = a1 ^ Convert.ToInt64(Math.Truncate(_regA / Math.Pow(2, a1 ^ 7))) % 8;
-                tempOutput.Append(outputDigit);
-                tempOutput.Append(',');
-                _regA = Convert.ToInt64(Math.Truncate(_regA / 8.0));
-            }
-            while (_regA > 0);
-            tempOutput.Remove(tempOutput.Length-1,1);
-            output = tempOutput.ToString();
+                var input = validInputs[i];
 
-            if(output == target)
-            {
-                Console.WriteLine($"WINNER WINNER {_regA} OUTPUT: {output}");
-                break;
-            }
-            if(output.Length > target.Length)
-            {
-                Console.WriteLine($"TOO FAR SO SAD :(\nRegA was {testA} OUTPUT: {output}");
-                break;
-            }
-            // Console.WriteLine($"A {_regA} Output: {output}");
+                var minSearch = input * 8;
+                var maxSearch = minSearch + 7;
+                Console.WriteLine($"Output digit needs to be {Program[targetPointer]}. (Solution / 8) needs to be  {input}. Output Search range: Min {minSearch} Max {maxSearch}");
+                var possibleInputs = FindInputs(Program[targetPointer], minSearch, maxSearch);
+                Console.WriteLine($"We found {possibleInputs.Count} value(s) to use for the input");
 
-            if(output.StartsWith("2,4,1,7,7,5,1,7,0"))
-            {
-                Console.WriteLine($"RegA was {testA}");
-                Console.WriteLine($"Target: {target}");
-                Console.WriteLine($"Output: {output}");
-                testA += 4095L * 4095L * 256;
+
+                // Assumption - If we get only 1 solution, it must be valid for the rest of the chain. TODO verify assumption
+                if (possibleInputs.Count == 1)
+                {
+                    Console.WriteLine($"Adding {possibleInputs.First()} to the input list");
+                    newValidInputs.Add(possibleInputs.First());
+                }
+                else
+                {
+                    Console.WriteLine("We have multiple inputs for the current generation. Checking the previous generations");
+                    for (int genCheck = 1; genCheck < generation; genCheck++)
+                    {
+                        var prevGenChecks = possibleInputs.Where(input => SatisfiesDigitPrevGeneration(input, genCheck, Program[targetPointer + genCheck]));
+                        possibleInputs = prevGenChecks.ToList();
+                    }
+                    if (possibleInputs.Any())
+                    {
+                        Console.WriteLine($"We have {possibleInputs.Count()} that will satisfy current and all previous generations");
+                        newValidInputs.AddRange(possibleInputs);
+                    }
+                }
             }
-            else
-            {
-                testA++;
-            }
+            validInputs = newValidInputs;
+            generation++;
+            targetPointer--;
+
         }
-        while(output != target);
 
+        Console.WriteLine($"We have {validInputs.Count} options for the final answer");
+
+        Console.Write($"\t{string.Join("\n\t", validInputs)}");
+        var output = validInputs.Order().First();
 
         return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2: {output}");
     }
