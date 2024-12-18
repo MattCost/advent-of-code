@@ -3,15 +3,12 @@ using AdventOfCode.Base.Grid;
 public class Day16 : BaseDay
 {
     List<string> _lines = new();
-
     Grid<char> _maze;
     GridNode<char> _start;
     GridNode<char> _end;
     int[,] distances;
     public Day16()
     {
-
-
         StreamReader sr = new StreamReader(InputFilePath);
 
         string? line = sr.ReadLine();
@@ -20,6 +17,7 @@ public class Day16 : BaseDay
             _lines.Add(line);
             line = sr.ReadLine();
         }
+
         _maze = new Grid<char>(_lines.Count, _lines[0].Length);
 
         for (int row = 0; row < _lines.Count; row++)
@@ -155,15 +153,15 @@ public class Day16 : BaseDay
         while (_processingQueue.Count > 0)
         {
             var copy = new Grid<char>(_maze.Rows, _maze.Cols);
-            for(int r=0 ; r<_maze.Rows ; r++)
+            for (int r = 0; r < _maze.Rows; r++)
             {
-                for(int c=0; c<_maze.Cols; c++)
+                for (int c = 0; c < _maze.Cols; c++)
                 {
-                    copy.AddNode(_maze.Nodes[r,c].Value,r,c);
+                    copy.AddNode(_maze.Nodes[r, c].Value, r, c);
                 }
             }
             var x = _processingQueue.UnorderedItems;
-            foreach(var y in x)
+            foreach (var y in x)
             {
                 copy.AddNode('@', y.Element.row, y.Element.col);
             }
@@ -171,7 +169,7 @@ public class Day16 : BaseDay
             // copy.PrintGrid();
             // Console.ReadKey();
             // Task.Delay(25).Wait();
-            
+
             var currentInfo = _processingQueue.Dequeue();
 
             // if target node break
@@ -193,7 +191,7 @@ public class Day16 : BaseDay
                 continue;
             }
 
-            if(currentInfo.distance > maxDistance) continue;
+            if (currentInfo.distance > maxDistance) continue;
             visited[currentInfo.row, currentInfo.col] = true;
 
             var currentNode = _maze.Nodes[currentInfo.row, currentInfo.col];
@@ -203,7 +201,7 @@ public class Day16 : BaseDay
             {
                 // skip visited nodes
                 if (currentInfo.path.Contains((edge.Node.Row, edge.Node.Col))) continue;
-             
+
                 // figure out cost to neighbor
                 int newDistance = currentInfo.distance + (edge.Direction == currentDir ? 1 : 1001);
 
