@@ -31,6 +31,7 @@ namespace AdventOfCode.Base.Grid
                     {
                         continue;
                     }
+                    Nodes[row,col].Edges.Clear();
                     if (row > 0 && (linkAnyValue || Nodes[row, col].Value!.Equals(Nodes[row - 1, col].Value)))
                     {
                         Nodes[row, col].Edges.Add(new GridNodeEdge<T>(Nodes[row - 1, col], Direction.Up));
