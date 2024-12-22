@@ -81,7 +81,7 @@ public class Day22 : BaseDay
                     var key = $"{deltas[j - 3]},{deltas[j - 2]},{deltas[j - 1]},{deltas[j]}";
                     if (!trackers[i].ContainsKey(key))
                     {
-                        trackers[i][key] = (prices[j+1], j+1);
+                        trackers[i][key] = (prices[j + 1], j + 1);
                     }
                 }
             }
@@ -90,6 +90,24 @@ public class Day22 : BaseDay
         }
 
         Console.WriteLine("Debug");
+
+        string winningSequence = string.Empty;
+        int bestPrice = 0;
+        var allSequences = trackers.SelectMany(tracker => tracker.Keys.ToList()).Distinct();
+        foreach (var sequence in allSequences)
+        {
+            var score = 0;
+            foreach(var tracker in trackers)
+            {
+                if(tracker.TryGetValue(sequence, out var entry)) score += entry.price;
+            }
+            if(score > bestPrice)
+            {
+                bestPrice = score;
+                winningSequence = sequence;
+            }
+        }
+
         /*
             Search all the lists of deltas for a pattern that indicates the highest price.
             Find a sequence that predicts 9.
@@ -103,7 +121,7 @@ public class Day22 : BaseDay
 
 
 
-        return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2");
+        return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2 {winningSequence}");
     }
 
 }
