@@ -8,7 +8,7 @@ public class Day20 : BaseDay
     int _startRow = 0, _startCol = 0;
     int _endRow = 0, _endCol = 0;
     int targetSaving = 10;
-
+    int[,] defaultDistances = new int[1,1];
     public Day20()
     {
         StreamReader sr = new StreamReader(InputFilePath);
@@ -50,7 +50,6 @@ public class Day20 : BaseDay
         return output;
     }
 
-    int[,] defaultDistances;
 
     private List<(int row, int col)> RunMaze(Grid<char> maze, int cheatRow = -1, int cheatCol = -1)
     {
