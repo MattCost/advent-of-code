@@ -52,6 +52,57 @@ public class Day22 : BaseDay
 
     public override ValueTask<string> Solve_2()
     {
+        List<List<int>> allPrices = new();
+        foreach (var line in _lines)
+        {
+            var secretNumber = long.Parse(line);
+            List<int> prices = [(int)(secretNumber % 10)];
+            Console.Write($"{secretNumber}: ");
+            for (int i = 0; i < 2000; i++)
+            {
+                secretNumber = GenerateNextSecret(secretNumber);
+                prices.Add((int)(secretNumber % 10));
+            }
+            Console.WriteLine($"{secretNumber}");
+            allPrices.Add(prices);
+        }
+        List<List<int>> allDeltas = new();
+        List<Dictionary<string, (int price, int index)>> trackers = new();
+        for (int i = 0; i < allPrices.Count; i++)
+        {
+            trackers.Add(new());
+            var prices = allPrices[i];
+            var deltas = new List<int>();
+            for (int j = 0; j < prices.Count - 1; j++)
+            {
+                deltas.Add(prices[j + 1] - prices[j]);
+                if (j >= 3)
+                {
+                    var key = $"{deltas[j - 3]},{deltas[j - 2]},{deltas[j - 1]},{deltas[j]}";
+                    if (!trackers[i].ContainsKey(key))
+                    {
+                        trackers[i][key] = (prices[j+1], j+1);
+                    }
+                }
+            }
+
+            allDeltas.Add(deltas);
+        }
+
+        Console.WriteLine("Debug");
+        /*
+            Search all the lists of deltas for a pattern that indicates the highest price.
+            Find a sequence that predicts 9.
+            Find a sequence that predicts 8.
+            Find a sequence that predicts 7.
+            etc.
+            Dictionary<(sequence), List<(index - price)>
+            find ind
+
+        */
+
+
+
         return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2");
     }
 
