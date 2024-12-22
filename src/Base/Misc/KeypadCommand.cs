@@ -23,7 +23,19 @@ namespace AdventOfCode.Base.Misc
                 KeypadCommand.Activate => "A",
                 _ => string.Empty
             };
+        }
 
+        public static KeypadCommand FromChar(this char c)
+        {
+            return c switch
+            {
+                '^' => KeypadCommand.Up,
+                '<' => KeypadCommand.Left,
+                '>' => KeypadCommand.Right,
+                'v' => KeypadCommand.Down,
+                'A' => KeypadCommand.Activate,
+                _ => throw new Exception("bad char")
+            };
         }
     }
 }

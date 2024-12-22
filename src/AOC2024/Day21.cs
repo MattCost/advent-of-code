@@ -82,26 +82,28 @@ public class Day21 : BaseDay
     private List<KeypadCommand> GenerateKeypadRobotCommands(List<KeypadCommand> commands)
     {
         var output = GenerateKeypadRobotCommand(KeypadCommand.Activate, commands[0]);
-        output.Add(KeypadCommand.Activate);
+        // output.Add(KeypadCommand.Activate);
 
         for (int i = 0; i < commands.Count - 1; i++)
         {
             output.AddRange(GenerateKeypadRobotCommand(commands[i], commands[i + 1]));
-            output.Add(KeypadCommand.Activate);
+            // output.Add(KeypadCommand.Activate);
         }
 
         return output;
 
     }
 
+    Dictionary<(KeypadCommand c1, KeypadCommand c2), List<KeypadCommand>> _keypadRobotCache = new();
     private List<KeypadCommand> GenerateKeypadRobotCommand(KeypadCommand c1, KeypadCommand c2)
     {
+        if (_keypadRobotCache.TryGetValue((c1, c2), out var cacheValue)) return [.. cacheValue];
+
         var output = new List<KeypadCommand>();
         (int row, int col) start = FindRobotKeypadLocation(c1);
         (int row, int col) end = FindRobotKeypadLocation(c2);
         var rowDelta = end.row - start.row;
         var colDelta = end.col - start.col;
-
 
         // Left before Up, Down before Right, unless the gap is in the way
         bool leftArrowEnd = end.col == 1;
@@ -136,6 +138,8 @@ public class Day21 : BaseDay
                 output.AddRange(Enumerable.Range(1, colDelta).Select(_ => KeypadCommand.Right).ToList());
         }
 
+        output.Add(KeypadCommand.Activate);
+        _keypadRobotCache[(c1, c2)] = [.. output];
         return output;
     }
 
@@ -192,14 +196,14 @@ public class Day21 : BaseDay
                 for (int i = 0; i < 2; i++)
                 {
                     Commands = GenerateKeypadRobotCommands(Commands);
-                    // Console.WriteLine($"Code {line} Keypad {i + 1} Commands");
-                    // Console.WriteLine($"{string.Join(string.Empty, Commands.Select(cmd => cmd.ToPrintString()))}");
+                    Console.WriteLine($"Code {line} Keypad {i + 1} Commands");
+                    Console.WriteLine($"{string.Join(string.Empty, Commands.Select(cmd => cmd.ToPrintString()))}");
                     ValidateKeypadRobotCommands(Commands);
                 }
                 var code = int.Parse(line.Replace("A", string.Empty).Trim());
                 long complexity = Commands.Count * code;
                 Console.WriteLine($"Input {line} Code {code} Command Count {Commands.Count} Complexity {complexity}");
-                // Console.WriteLine($"{line}: {string.Join(string.Empty, Commands.Select(c => c.ToPrintString()))}");
+                Console.WriteLine($"{line}: {string.Join(string.Empty, Commands.Select(c => c.ToPrintString()))}");
                 output += complexity;
 
             }
@@ -271,58 +275,52 @@ public class Day21 : BaseDay
     public override ValueTask<string> Solve_2()
     {
         long output = 0;
-        Dictionary<(KeypadCommand start, KeypadCommand end), List<KeypadCommand>> Expansion = GenerateExpansion();
-        //needs to be Start,end, int
-        Dictionary<(KeypadCommand start, KeypadCommand end), int> CommandCount = new();
+        Dictionary<string, string> ExpansionMap = new();
 
         checked
         {
             foreach (var line in _lines)
             {
+                Dictionary<string, long> CommandCount = new();
                 var doorRobotCommands = GenerateDoorRobotCommands(line);
                 Console.WriteLine($"Code {line} Door Robot Commands");
                 Console.WriteLine($"{string.Join(string.Empty, doorRobotCommands.Select(cmd => cmd.ToPrintString()))}");
 
-                var firstGenCommands = GenerateKeypadRobotCommands(doorRobotCommands);
-                for (int i = 0; i < firstGenCommands.Count - 1; i++)
+                var firstGenCommands = string.Join(string.Empty, GenerateKeypadRobotCommands(doorRobotCommands).Select(cmd => cmd.ToPrintString()));
+                Console.WriteLine("First generation commands");
+                Console.WriteLine(firstGenCommands);
+                var split = firstGenCommands.Split('A');
+                for(int i =0 ; i <split.Length -1 ;i++)
                 {
-                    var key = (firstGenCommands[i], firstGenCommands[i+1]);
-                    if(!CommandCount.ContainsKey(key))
-                    {
-                        CommandCount[key]=1;
-                    }
-                    else
-                    {
-                        CommandCount[(firstGenCommands[i], firstGenCommands[i + 1])]++;
-                    }
+                    var proper = $"{split[i]}A";
+                    CommandCount[proper] = CommandCount.ContainsKey(proper) ? CommandCount[proper] + 1 : 1;
                 }
 
-                for (int i = 0; i < 25; i++)
+                for (int i = 1; i < 25; i++)
                 {
                     var currentCounts = CommandCount.ToArray();
                     CommandCount.Clear();
-                    foreach (var ckvp in currentCounts)
+                    foreach (var cmdCountKVP in currentCounts)
                     {
-                        var expandedCmd = Expansion[ckvp.Key];
-                        for (int x = 0; x < expandedCmd.Count - 1; x++)
+                        if (!ExpansionMap.ContainsKey(cmdCountKVP.Key))
                         {
-                            var cmd = (expandedCmd[x], expandedCmd[x+1]);
-                            if(!CommandCount.ContainsKey(cmd))
-                            {
-                                CommandCount[cmd] = ckvp.Value;
-                            }
-                            else
-                            {
-                                CommandCount[cmd] += ckvp.Value;
-                            }
+                            ExpansionMap[cmdCountKVP.Key] = GenerateExpansionMap(cmdCountKVP.Key);
+                        }
+                        var expandedCmd = ExpansionMap[cmdCountKVP.Key];
+                        var subExpandedCmds = expandedCmd.Split('A');
+                        for(int x=0 ; x<subExpandedCmds.Length -1 ; x++)
+                        {
+                            var proper = $"{subExpandedCmds[x]}A";
+                            CommandCount[proper] = CommandCount.ContainsKey(proper) ? CommandCount[proper] + cmdCountKVP.Value : cmdCountKVP.Value;
+
                         }
                     }
                 }
-                 
-                var totalCmdCount = CommandCount.Select(kvp => kvp.Value * Expansion[kvp.Key].Count).Sum();
+
+                var totalCmdLen = CommandCount.Select(kvp => kvp.Value * kvp.Key.Length).Sum();                
                 var code = int.Parse(line.Replace("A", string.Empty).Trim());
-                long complexity = totalCmdCount * code;
-                Console.WriteLine($"Input {line} Code {code} Command Count {totalCmdCount} Complexity {complexity}");
+                long complexity = totalCmdLen * code;
+                Console.WriteLine($"Input {line} Code {code} Command Count {totalCmdLen} Complexity {complexity}");
                 // Console.WriteLine($"{line}: {string.Join(string.Empty, Commands.Select(c => c.ToPrintString()))}");
                 output += complexity;
 
@@ -330,6 +328,16 @@ public class Day21 : BaseDay
         }
         return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2 {output}");
 
+    }
+
+    private string GenerateExpansionMap(string cmdString)
+    {
+        if(cmdString.Contains('S'))
+        {
+            Console.WriteLine("wtf");
+        }
+        var cmds = cmdString.Select(c => c.FromChar()).ToList();
+        return string.Join(string.Empty, GenerateKeypadRobotCommands(cmds).Select(cmd => cmd.ToPrintString()));
     }
 
     private Dictionary<(KeypadCommand start, KeypadCommand end), List<KeypadCommand>> GenerateExpansion()
