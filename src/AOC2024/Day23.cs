@@ -41,22 +41,43 @@ public class Day23 : BaseDay
             n1.Edges.Add(n2);
             n2.Edges.Add(n1);
         }
-
-
     }
 
     public override ValueTask<string> Solve_1()
     {
-        Console.WriteLine($"We have {nerds.Count} computers to search");
         var triForce = Find3Ways();
         Console.WriteLine($"There are {triForce.Count} 3 ways to search");
-        int output = 0;
-        foreach (var triplet in triForce)
-        {
-            if (triplet.Item1.StartsWith("t") || triplet.Item2.StartsWith("t") || triplet.Item3.StartsWith("t"))
-                output++;
-        }
+        var output = triForce.Where( t => t.Item1.StartsWith('t') || t.Item2.StartsWith('t') || t.Item3.StartsWith('t')).Count();
         return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 1 {output}");
+    }
+    private List<(string, string, string)> FindTriangles(List<LinkedNode<string>> graph)
+    {
+        var output = new List<(string, string, string)>();
+        var nodes = graph.OrderBy(node => node.Edges.Count).ToList();
+        while (nodes.Count > 2)
+        {
+            var vi = nodes[0];
+            var marks = vi.Edges.ToDictionary(x => x.Value, _ => true);
+            foreach (var u in vi.Edges)
+            {
+                foreach (var w in u.Edges)
+                {
+                    if (marks.ContainsKey(w.Value))
+                    {
+                        var tri = new List<string> { vi.Value, u.Value, w.Value }.Order().ToList();
+                        var x = (tri[0], tri[1], tri[2]);
+                        if (!output.Contains(x))
+                        {
+                            output.Add(x);
+                        }
+                        marks.Remove(u.Value); 
+                    }
+                }
+            }
+            nodes.RemoveAt(0);
+        }
+
+        return output;
     }
 
     private List<(string, string, string)> Find3Ways()
@@ -86,17 +107,14 @@ public class Day23 : BaseDay
     }
     public override ValueTask<string> Solve_2()
     {
-        Console.WriteLine($"Still have {nerds.Count} computers to search");
-        var output = FindLanParty2();
-        Console.WriteLine("Expecting `az,cg,ei,hz,jc,km,kt,mv,sv,sx,wc,wq,xy`");
-        return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 1 `{output}`");
+        var output = FindLanParty3();
+        return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2 `{output}`");
     }
 
     private bool MutuallyLinked(IEnumerable<LinkedNode<string>> nodes)
     {
         foreach (var node in nodes)
         {
-            // var targetLinkValues = nodes.Where(n => n.Value != node.Value).Select(n => n.Value);
             var targetLinkValues = nodes.Select(n => n.Value);
             var matches = node.Edges.Count(e => targetLinkValues.Contains(e.Value));
             if (matches != targetLinkValues.Count() - 1) return false;
@@ -104,6 +122,40 @@ public class Day23 : BaseDay
         return true;
 
     }
+
+    private List<List<LinkedNode<string>>> BronKerbosch1(List<LinkedNode<string>> rPotentialClique, List<LinkedNode<string>> pRemaining, List<LinkedNode<string>> xSkip)
+    {
+        var output = new List<List<LinkedNode<string>>>();
+        if (pRemaining.Count == 0 && xSkip.Count == 0)
+        {
+            output.Add(rPotentialClique);
+            return output;
+        }
+
+        while (pRemaining.Count > 0)
+        {
+            var node = pRemaining[0];
+            var neighbors = node.Edges.Select(edge => edge.Value);
+            var results = BronKerbosch1([.. rPotentialClique, node], pRemaining.Where(n => neighbors.Contains(n.Value)).ToList(), xSkip.Where(n => neighbors.Contains(n.Value)).ToList());
+
+            foreach (var result in results)
+                output.Add(result);
+
+            pRemaining.RemoveAt(0);
+            xSkip.Add(node);
+        }
+        return output;
+    }
+    
+    private string FindLanParty3()
+    {
+        var allCliques = BronKerbosch1([], nerds, []);
+        var biggestGroup = allCliques.OrderBy(g => g.Count).Last();
+        var bgPassword = string.Join(",", biggestGroup.Select(x => x.Value).Order());
+        return bgPassword;
+    }
+
+
     private string FindLanParty2()
     {
         var output = string.Empty;
