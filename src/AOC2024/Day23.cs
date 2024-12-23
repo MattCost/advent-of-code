@@ -1,6 +1,3 @@
-using System.Collections.ObjectModel;
-using AdventOfCode.Base.Grid;
-
 public class LinkedNode<T>
 {
     public T Value { get; init; }
@@ -90,7 +87,8 @@ public class Day23 : BaseDay
     public override ValueTask<string> Solve_2()
     {
         Console.WriteLine($"Still have {nerds.Count} computers to search");
-        var output = FindLanParty();
+        var output = FindLanParty2();
+        Console.WriteLine("Expecting `az,cg,ei,hz,jc,km,kt,mv,sv,sx,wc,wq,xy`");
         return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 1 `{output}`");
     }
 
@@ -98,12 +96,42 @@ public class Day23 : BaseDay
     {
         foreach (var node in nodes)
         {
-            var targetLinkValues = nodes.Where(n => n.Value != node.Value).Select(n => n.Value);
+            // var targetLinkValues = nodes.Where(n => n.Value != node.Value).Select(n => n.Value);
+            var targetLinkValues = nodes.Select(n => n.Value);
             var matches = node.Edges.Count(e => targetLinkValues.Contains(e.Value));
-            if (matches != targetLinkValues.Count()) return false;
+            if (matches != targetLinkValues.Count() - 1) return false;
         }
         return true;
 
+    }
+    private string FindLanParty2()
+    {
+        var output = string.Empty;
+        foreach (var nerd in nerds)
+        {
+            List<List<LinkedNode<string>>> groups = new();
+            foreach (var link in nerd.Edges)
+            {
+                groups.Add(new List<LinkedNode<string>> { link, nerd });
+            }
+            for (int i = 1; i < nerd.Edges.Count; i++)
+            {
+                for (int g = 0; g < groups.Count; g++)
+                {
+                    if (MutuallyLinked(groups[g].Append(nerd.Edges[i])))
+                    {
+                        groups[g].Add(nerd.Edges[i]);
+                    }
+                }
+            }
+            var biggestGroup = groups.OrderBy(g => g.Count).Last();
+            var bgPassword = string.Join(",", biggestGroup.Select(x => x.Value).Order());
+            if (bgPassword.Length > output.Length)
+                output = bgPassword;
+        }
+
+
+        return output;
     }
     private string FindLanParty()
     {
@@ -111,7 +139,7 @@ public class Day23 : BaseDay
         int largestGroup = 0;
         foreach (var nerd in nerds)
         {
-            var possibleLans = GenerateCombos(nerd, largestGroup + 1).ToList();
+            var possibleLans = GenerateCombos(nerd, largestGroup + 1);
             foreach (var possibleLan in possibleLans)
             {
                 if (MutuallyLinked(possibleLan))
@@ -120,7 +148,7 @@ public class Day23 : BaseDay
                     {
                         largestGroup = possibleLan.Count();
                         //update output
-                        output = string.Join(",", possibleLan.Select( x=>x.Value).Order());
+                        output = string.Join(",", possibleLan.Select(x => x.Value).Order());
                     }
                 }
             }
@@ -137,8 +165,8 @@ public class Day23 : BaseDay
         options.Add(node);
         for (int i = minSize; i <= largestPossible; i++)
         {
-            var newCombos = options.Combinations(i).ToList();
-            foreach(var combo in newCombos)
+            var newCombos = options.Combinations(i);
+            foreach (var combo in newCombos)
                 output.Add(combo);
         }
         return output;
