@@ -52,75 +52,41 @@ public class Day22 : BaseDay
 
     public override ValueTask<string> Solve_2()
     {
-        List<List<int>> allPrices = new();
-        foreach (var line in _lines)
+        Dictionary<string, (int score, int buyer)> totalScores = new();
+        for (int b = 0; b < _lines.Count; b++)
         {
+            var line = _lines[b];
             var secretNumber = long.Parse(line);
-            List<int> prices = [(int)(secretNumber % 10)];
-            Console.Write($"{secretNumber}: ");
+            var deltas = new List<int>();
+            int prevPrice = (int)secretNumber % 10;
+            int price = 0;
             for (int i = 0; i < 2000; i++)
             {
                 secretNumber = GenerateNextSecret(secretNumber);
-                prices.Add((int)(secretNumber % 10));
-            }
-            Console.WriteLine($"{secretNumber}");
-            allPrices.Add(prices);
-        }
-        List<List<int>> allDeltas = new();
-        List<Dictionary<string, (int price, int index)>> trackers = new();
-        for (int i = 0; i < allPrices.Count; i++)
-        {
-            trackers.Add(new());
-            var prices = allPrices[i];
-            var deltas = new List<int>();
-            for (int j = 0; j < prices.Count - 1; j++)
-            {
-                deltas.Add(prices[j + 1] - prices[j]);
-                if (j >= 3)
+                price = (int)(secretNumber % 10);
+                deltas.Add(price - prevPrice);
+                if (i >= 3)
                 {
-                    var key = $"{deltas[j - 3]},{deltas[j - 2]},{deltas[j - 1]},{deltas[j]}";
-                    if (!trackers[i].ContainsKey(key))
+                    var key = $"{deltas[i - 3]},{deltas[i - 2]},{deltas[i - 1]},{deltas[i]}";
+                    if (totalScores.TryGetValue(key, out var scoreEntry))
                     {
-                        trackers[i][key] = (prices[j + 1], j + 1);
+                        if (scoreEntry.buyer != b)
+                        {
+                            totalScores[key] = (scoreEntry.score + price, b);
+                        }
+                    }
+                    else
+                    {
+                        totalScores[key] = (price, b);
                     }
                 }
-            }
-
-            allDeltas.Add(deltas);
-        }
-
-        Console.WriteLine("Debug");
-
-        string winningSequence = string.Empty;
-        int bestPrice = 0;
-        var allSequences = trackers.SelectMany(tracker => tracker.Keys.ToList()).Distinct();
-        foreach (var sequence in allSequences)
-        {
-            var score = 0;
-            foreach(var tracker in trackers)
-            {
-                if(tracker.TryGetValue(sequence, out var entry)) score += entry.price;
-            }
-            if(score > bestPrice)
-            {
-                bestPrice = score;
-                winningSequence = sequence;
+                prevPrice = price;
             }
         }
 
-        /*
-            Search all the lists of deltas for a pattern that indicates the highest price.
-            Find a sequence that predicts 9.
-            Find a sequence that predicts 8.
-            Find a sequence that predicts 7.
-            etc.
-            Dictionary<(sequence), List<(index - price)>
-            find ind
-
-        */
-
-
-
+        var winningSequence = totalScores.OrderBy(x => x.Value).Last().Key;
+        var winningScore = totalScores[winningSequence];
+        Console.WriteLine($"Sequence {winningSequence} Score {winningScore}");
         return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2 {winningSequence}");
     }
 
