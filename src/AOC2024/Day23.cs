@@ -107,7 +107,10 @@ public class Day23 : BaseDay
     }
     public override ValueTask<string> Solve_2()
     {
-        var output = FindLanParty3();
+        var allCliques = BronKerbosch1([], nerds, []);
+        var biggestGroup = allCliques.OrderBy(g => g.Count).Last();
+        var output = string.Join(",", biggestGroup.Select(x => x.Value).Order());
+        
         return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2 `{output}`");
     }
 
@@ -146,15 +149,6 @@ public class Day23 : BaseDay
         }
         return output;
     }
-    
-    private string FindLanParty3()
-    {
-        var allCliques = BronKerbosch1([], nerds, []);
-        var biggestGroup = allCliques.OrderBy(g => g.Count).Last();
-        var bgPassword = string.Join(",", biggestGroup.Select(x => x.Value).Order());
-        return bgPassword;
-    }
-
 
     private string FindLanParty2()
     {
@@ -182,9 +176,9 @@ public class Day23 : BaseDay
                 output = bgPassword;
         }
 
-
         return output;
     }
+
     private string FindLanParty()
     {
         var output = string.Empty;
@@ -199,7 +193,6 @@ public class Day23 : BaseDay
                     if (possibleLan.Count() > largestGroup)
                     {
                         largestGroup = possibleLan.Count();
-                        //update output
                         output = string.Join(",", possibleLan.Select(x => x.Value).Order());
                     }
                 }
@@ -209,6 +202,7 @@ public class Day23 : BaseDay
     }
 
 
+    // Generates all possible combos
     IEnumerable<IEnumerable<LinkedNode<string>>> GenerateCombos(LinkedNode<string> node, int minSize)
     {
         var output = new List<IEnumerable<LinkedNode<string>>>();
@@ -226,11 +220,14 @@ public class Day23 : BaseDay
 
 }
 
+/*
+Extension method for generating combinations of elements
+*/
 public static class ComboExtensions
 {
     public static IEnumerable<IEnumerable<T>> Combinations<T>(this IEnumerable<T> elements, int k)
     {
-        return k == 0 ? new[] { new T[0] } :
+        return k == 0 ? [[]] :
         elements.SelectMany((e, i) =>
         elements.Skip(i + 1).Combinations(k - 1).Select(c => (new[] { e }).Concat(c)));
     }
