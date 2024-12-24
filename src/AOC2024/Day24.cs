@@ -114,10 +114,12 @@ public class Day24 : BaseDay
         {
             var input1 = valueNodes[op.in1];
             var input2 = valueNodes[op.in2];
-            var compNode = new ComputeNode(input1, input2, op.op, valueNodes[op.output]);
+            var output1 = valueNodes[op.output];
+            var compNode = new ComputeNode(input1, input2, op.op, output1);
             computeNodes.Add(compNode);
             input1.NextOperation = compNode;
             input2.NextOperation = compNode;
+            output1.PrevOperation = compNode;
         }
         
         while(true)
@@ -130,6 +132,8 @@ public class Day24 : BaseDay
         var output = valueNodes.GetZValue();
         Console.WriteLine($"Part 1 confirmation {output}");
 
+        //Bit12 is getting routed to bit13
+        // valueNodes.SwapOps("z12", "z13");
         var max = (long)Math.Pow(2,44);
         for( long testCase = 1 ; testCase <= max ; testCase*=2L)
         {
@@ -147,10 +151,9 @@ public class Day24 : BaseDay
             if(output != testCase)
             {
                 Console.WriteLine($"Test Case {testCase} : Output {output}");
-            }
-
-
+            }           
         }
+
 
         return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2 {output}");
     }
@@ -158,6 +161,18 @@ public class Day24 : BaseDay
 }
 public static class ValueNodeExtensions
 {
+    public static void SwapOps(this Dictionary<string, ValueNode> values, string op1, string op2)
+    {
+        var v1 = values[op1];
+        var v2 = values[op2];
+        var v1Prev = v1.PrevOperation;
+        var v2Prev = v2.PrevOperation;
+        if(v1Prev == null) throw new Exception("v1 prev op is null!");
+        if(v2Prev == null) throw new Exception("v2 prev op is null!");
+        v1Prev.Output = v2;
+        v2Prev.Output = v1;
+
+    }
     public static long GetZValue(this Dictionary<string, ValueNode> values)
     {
         long output = 0;
@@ -205,6 +220,7 @@ public class ValueNode
     public string Name { get; set; }
     public int Value { get; set; } = -1;
     public ComputeNode? NextOperation { get; set; }
+    public ComputeNode? PrevOperation { get; set; }
     public ValueNode(string name) => Name = name;
 }
 public class ComputeNode
