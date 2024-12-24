@@ -45,7 +45,8 @@ public class Day23 : BaseDay
 
     public override ValueTask<string> Solve_1()
     {
-        var triForce = Find3Ways();
+        // var triForce = Find3Ways();
+        var triForce = FindTriangles(nerds);
         Console.WriteLine($"There are {triForce.Count} 3 ways to search");
         var output = triForce.Where( t => t.Item1.StartsWith('t') || t.Item2.StartsWith('t') || t.Item3.StartsWith('t')).Count();
         return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 1 {output}");
@@ -57,12 +58,14 @@ public class Day23 : BaseDay
         while (nodes.Count > 2)
         {
             var vi = nodes[0];
-            var marks = vi.Edges.ToDictionary(x => x.Value, _ => true);
+            vi.Edges.ForEach(edge => edge.Visited = true);
+            // var marks = vi.Edges.ToDictionary(x => x.Value, _ => true);
             foreach (var u in vi.Edges)
             {
                 foreach (var w in u.Edges)
                 {
-                    if (marks.ContainsKey(w.Value))
+                    if(w.Visited)
+                    // if (marks.ContainsKey(w.Value))
                     {
                         var tri = new List<string> { vi.Value, u.Value, w.Value }.Order().ToList();
                         var x = (tri[0], tri[1], tri[2]);
@@ -70,10 +73,12 @@ public class Day23 : BaseDay
                         {
                             output.Add(x);
                         }
-                        marks.Remove(u.Value); 
+                        u.Visited = false;
+                        // marks.Remove(u.Value); 
                     }
                 }
             }
+            vi.Edges.ForEach(edge => edge.Visited =false);
             nodes.RemoveAt(0);
         }
 
