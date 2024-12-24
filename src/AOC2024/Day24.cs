@@ -130,17 +130,28 @@ public class Day24 : BaseDay
         var output = valueNodes.GetZValue();
         Console.WriteLine($"Part 1 confirmation {output}");
 
-        valueNodes.ResetComputer();
-        valueNodes.LoadXValue(10);
-        valueNodes.LoadYValue(0);
-        while(true)
+        var max = (long)Math.Pow(2,44);
+        for( long testCase = 1 ; testCase <= max ; testCase*=2L)
         {
-            var unprocessed = computeNodes.Where(node => node.Output.Value == -1);
-            if(!unprocessed.Any()) break;
-            foreach (var node in unprocessed)
-                node.TryDoOperation();
+            valueNodes.ResetComputer();
+            valueNodes.LoadXValue(testCase);
+            valueNodes.LoadYValue(0);
+            while(true)
+            {
+                var unprocessed = computeNodes.Where(node => node.Output.Value == -1);
+                if(!unprocessed.Any()) break;
+                foreach (var node in unprocessed)
+                    node.TryDoOperation();
+            }
+            output = valueNodes.GetZValue();
+            if(output != testCase)
+            {
+                Console.WriteLine($"Test Case {testCase} : Output {output}");
+            }
+
+
         }
-        output = valueNodes.GetZValue();
+
         return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2 {output}");
     }
 
