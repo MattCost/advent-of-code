@@ -1,5 +1,7 @@
 using System.ComponentModel;
+using System.Reflection.Metadata;
 using System.Security;
+using AdventOfCode.Base.Misc;
 
 public class Day24 : BaseDay
 {
@@ -109,147 +111,154 @@ public class Day24 : BaseDay
         }
 
         computeNodes.Compute();
-        var output = valueNodes.GetZValue();
-        Console.WriteLine($"Part 1 confirmation {output}");
+        Console.WriteLine($"Part 1 confirmation {valueNodes.GetZValue()}");
 
         // Print out the chains of interest for manually debugging
         // Console.WriteLine(" **** z12 **** ");
         // PrintChain(valueNodes["z12"]);
 
-        // Console.WriteLine(" **** z13 **** ");
-        // PrintChain(valueNodes["z13"]);
+        // Results from manually debugging
+        // valueNodes.SwapOps("z12", "vdc"); // right
+        // valueNodes.SwapOps("z21", "nhn"); // right 
+        // valueNodes.SwapOps("tvb", "khg"); //brute :)        
+        // valueNodes.SwapOps("z33", "gst"); //right
 
-        // Console.WriteLine(" **** z21 **** ");
-        // PrintChain(valueNodes["z21"]);
-
-        // Console.WriteLine(" **** z22 **** ");
-        // PrintChain(valueNodes["z22"]);
-
-        // Console.WriteLine(" **** z25 **** ");
-        // PrintChain(valueNodes["z25"]);
-
-        // Console.WriteLine(" **** z26 **** ");
-        // PrintChain(valueNodes["z26"]);
-
-        // Console.WriteLine(" **** z33 **** ");
-        // PrintChain(valueNodes["z33"]);
-
-        // Console.WriteLine(" **** z34 **** ");
-        // PrintChain(valueNodes["z34"]);
-
-        valueNodes.SwapOps("z12", "vdc"); // right i think
-        // //pps (close but wrong)
-        valueNodes.SwapOps("z21", "nhn"); // right i think
-        valueNodes.SwapOps("tvb", "khg"); //brute :)
-        // //khg (close but wrong) mfp (close but wrong)
-        valueNodes.SwapOps("z33", "gst"); //right maybe
-
-        //BRUTE
-        // var swapTrys = FindAllInputs(valueNodes["z25"]).Select(x => x.Output.Name).ToList();
-        // swapTrys.AddRange(FindAllInputs(valueNodes["z26"]).Select(x =>x.Output.Name).ToList());
-
-        // // /var swapTrys = new List<string> {"z25", "z26", "mfp", "jhd", "tbn", "grb", "rqd", "rkf", "mmw", "nrq", "vkg", "jkq", "nhn", "rsc", "qfn", "ddw", "dmb", "rtg", "sdp", "ptd", "jmr", "nhh", "tgq", "nqm", "fmf", "tnt", "rrj", "fwg", "srk", "sjm", "dwt", "qsg", "csf", "ggg", "hvg", "fbk", "vdc", "pps", "wdg", "rvg", "wvv", "spg", "ptj", "dtg", "fjn", "bsm", "vsc", "cbk", "ccd", "qtg", "dbm", "pmv", "cnm", "dgh", "bgq", "wdh", "jhv", "chs", "rgv", "ndp", "qfk", "ssj", "ccr", "fpk", "dfh", "bcr", "nmw", "bvk", "gpk", "spq", "khh", "bgp", "psw", "pvj", "nfq", "nph", "gqg", "jft", "knh", "cst", "nbm", "htc", "hhm", "kcp", "wdg", "rvg", "wvv", "spg", "ptj", "dtg", "fjn", "bsm", "vsc", "cbk", "ccd", "qtg", "dbm", "pmv", "cnm", "dgh", "bgq", "wdh", "jhv", "chs", "rgv", "ndp", "qfk", "ssj", "ccr", "fpk", "dfh", "bcr", "nmw", "bvk", "gpk", "spq", "khh", "bgp", "psw", "pvj", "nfq", "nph", "gqg", "jft", "knh", "cst", "nbm", "htc", "hhm", "pps", "tcq", "bck", "gtf", "mft", "khn", "nhm", "kfd", "crv", "fht", "fct", "bbn", "ncf", "mhq", "khg" };
-        // // var swapTrys = new List<string> {"z25", "z26", "khg", "jhd", "tbn", "grb", "mfp"};
-        // for (int i = 0; i < swapTrys.Count - 1; i++)
-        // {
-        //     var swap1 = swapTrys[i];
-        //     for (int j = i+1; j < swapTrys.Count; j++)
-        //     {
-        //         var swap2 = swapTrys[j];
-        //         valueNodes.SwapOps(swap1, swap2);
-        //         try
-        //         {
-        //             var testCaseBits = Enumerable.Range(1, 28);
-        //             foreach (var bit in testCaseBits)
-        //             {
-        //                 long testCase = Convert.ToInt64(Math.Pow(2, bit));
-        //                 valueNodes.ResetComputer();
-        //                 valueNodes.LoadXValue(testCase-1);
-        //                 valueNodes.LoadYValue(1);
-        //                 computeNodes.Compute();
-        //                 output = valueNodes.GetZValue();
-        //                 if (output != testCase)
-        //                 {
-        //                     throw new Exception("Failed X test case");
-        //                     // Console.WriteLine($"Test Case {bit}: x : {testCase-1} + y : {1} : Output {output}");
-        //                 }
-
-        //                 valueNodes.ResetComputer();
-        //                 valueNodes.LoadXValue(0);
-        //                 valueNodes.LoadYValue(testCase);
-        //                 computeNodes.Compute();
-        //                 output = valueNodes.GetZValue();
-        //                 if (output != testCase)
-        //                 {
-        //                     throw new Exception("Failed Y test case");
-        //                     // Console.WriteLine($"Test Case {bit}: x:{0} + y:{testCase} : Output {output}");
-        //                 }
-        //             }
-        //             Console.WriteLine($"**************************** SWAP {swap1} {swap2} is a winner?");
-
-        //         }
-        //         catch (Exception)
-        //         {
-        //             // Console.WriteLine($"Swap {swap} is a stinker. {ex.Message} ");
-        //         }
-
-        //         valueNodes.SwapOps(swap1, swap2);
-        //     }
-        // }
-
-        // var suspects = FindOpsInCommon(valueNodes["z25"], valueNodes["z26"]);
-        // foreach(var suspect in suspects)
-        //     Console.WriteLine(suspect);
-
-        //gst,khg,nhn,vdc,z12,z21,z25,z33 (wrong)
-
-        // Test Loop. Generate an input with a single bit set. X+0 should ==X. If not you can figure out which 2 output bits are getting swapped then debug
-        // var testCaseBits = Enumerable.Range(1, 44);
-        // foreach (var bit in testCaseBits)
-        // {
-        //     long testCase = Convert.ToInt64(Math.Pow(2, bit));
-        //     valueNodes.ResetComputer();
-        //     valueNodes.LoadXValue(testCase);
-        //     valueNodes.LoadYValue(0);
-        //     computeNodes.Compute();
-        //     output = valueNodes.GetZValue();
-        //     if (output != testCase)
-        //     {
-        //         Console.WriteLine($"Test Case {bit}: x : {testCase} + y : {0} : Output {output}");
-        //     }
-
-        //     valueNodes.ResetComputer();
-        //     valueNodes.LoadXValue(0);
-        //     valueNodes.LoadYValue(testCase);
-        //     computeNodes.Compute();
-        //     output = valueNodes.GetZValue();
-        //     if (output != testCase)
-        //     {
-        //         Console.WriteLine($"Test Case {bit}: x:{0} + y:{testCase} : Output {output}");
-        //     }
-        // }
-
-        var testCases = new List<long> { 
-            // bit 12 related
-            4095, 4096, 4097, 18255,
-            12288, 28672, 8417280, 8392704, 8400896,
-            // bit 21 related
-            2097152, 6291456, 7340032
-             };
-
-        foreach (var testCase in testCases)
+        // int swapsFound = 0;
+        var allSwaps = new List<string>();
+        while (allSwaps.Count < 8)
         {
-            valueNodes.ResetComputer();
-            valueNodes.LoadXValue(0);
-            valueNodes.LoadYValue(testCase);
-            computeNodes.Compute();
-            output = valueNodes.GetZValue();
-            if (output != testCase)
+            // Run the bit test case thru until it fails.            
+            long testOutput = 0;
+            int inputBit = 0;
+            long testCase = 0;
+            for (inputBit = 1; inputBit <= 44; inputBit++)
             {
-                Console.WriteLine($"Test Case x: {testCase} + y: {0} : Output {output}");
+                testCase = Convert.ToInt64(Math.Pow(2, inputBit));
+                valueNodes.ResetComputer();
+                valueNodes.LoadXValue(testCase);
+                valueNodes.LoadYValue(0);
+                computeNodes.Compute();
+                testOutput = valueNodes.GetZValue();
+                if (testOutput != testCase)
+                {
+                    break;
+                }
+            }
+
+            // Generate list of possible swaps, involving all precursors to the expected output bit, and all precursors to the actual output bit
+            var outputBit = testOutput.GetSingleBitSet();
+            var expectedOutValue = valueNodes[inputBit > 10 ? $"z{inputBit}" : $"z0{inputBit}"];
+            var actualOutValue = valueNodes[outputBit > 10 ? $"z{outputBit}" : $"z0{outputBit}"];
+            var swapTries = FindAllPrecursorOperations(expectedOutValue).Select(x => x.Output.Name).ToList();
+            swapTries.AddRange(FindAllPrecursorOperations(actualOutValue).Select(x => x.Output.Name).ToList());
+
+            Console.WriteLine($"Test Case failed. InputBit {inputBit}. TestCase {testCase}. Actual {testOutput} Bit {outputBit}.");
+            Console.WriteLine($"There are {swapTries.Count} items to try and swap. {string.Join(",", swapTries)}");
+
+            // Swap loop
+            bool swapFound = false;
+            string swap1 = string.Empty, swap2 = string.Empty;
+
+            for (int i = 0; i < swapTries.Count - 1; i++)
+            {
+                swap1 = swapTries[i];
+                for (int j = i + 1; j < swapTries.Count; j++)
+                {
+                    swap2 = swapTries[j];
+
+                    valueNodes.SwapOps(swap1, swap2);
+                    try
+                    {
+                        var testCaseBits = Enumerable.Range(1, Math.Max(inputBit, outputBit) ); 
+                        foreach (var bit in testCaseBits)
+                        {
+                            testCase = Convert.ToInt64(Math.Pow(2, bit));
+
+                            valueNodes.ResetComputer();
+                            valueNodes.LoadXValue(testCase);
+                            valueNodes.LoadYValue(0);
+                            computeNodes.Compute();
+                            if (valueNodes.GetZValue() != testCase)
+                            {
+                                throw new Exception("Failed X only test case");
+                            }
+
+                            valueNodes.ResetComputer();
+                            valueNodes.LoadXValue(testCase - 1);
+                            valueNodes.LoadYValue(1);
+                            computeNodes.Compute();
+                            if (valueNodes.GetZValue() != testCase)
+                            {
+                                throw new Exception("Failed X-1, 1 test case");
+                            }
+
+                            valueNodes.ResetComputer();
+                            valueNodes.LoadXValue(0);
+                            valueNodes.LoadYValue(testCase);
+                            computeNodes.Compute();
+                            if (valueNodes.GetZValue() != testCase)
+                            {
+                                throw new Exception("Failed Y only test case");
+                            }
+
+                            valueNodes.ResetComputer();
+                            valueNodes.LoadXValue(1);
+                            valueNodes.LoadYValue(testCase - 1);
+                            computeNodes.Compute();
+                            if (valueNodes.GetZValue() != testCase)
+                            {
+                                throw new Exception("Failed 1 Y-1 only test case");
+                            }
+
+                            valueNodes.ResetComputer();
+                            valueNodes.LoadXValue(testCase);
+                            valueNodes.LoadYValue(testCase);
+                            computeNodes.Compute();
+                            if (valueNodes.GetZValue() != 2*testCase)
+                            {
+                                throw new Exception("Failed XY double test case");
+                            }
+
+                        }
+
+                        //Assuming only 1 swap will pass our test cases
+                        //Swap was good, break out of swap loop
+                        swapFound = true;
+                        break;
+                    }
+                    catch (Exception)
+                    {
+                        // Undo the bad swap
+                        valueNodes.SwapOps(swap1, swap2);
+                    }
+                }
+
+                if (swapFound)
+                {
+                    //If we found a swap, add to the list and then get out of outer loop
+                    allSwaps.Add(swap1);
+                    allSwaps.Add(swap2);
+                    break;
+                }
+            }
+
+            // Debug lines
+            if (swapFound)
+            {
+                Console.WriteLine($"Great success swapping {swap1} and {swap2}");
+            }
+            else
+            {
+                Console.WriteLine($"Swaps all failed :(");
+                throw new Exception("All swaps failed. Recheck assumptions");
             }
         }
-        
+
+
+        Console.WriteLine($"Found 8 swaps. {string.Join(",", allSwaps)}");
+
+        Console.WriteLine("Shakedown testing. You should see no failures");
+        // Random testing. 
         for (int i = 0; i < 100; i++)
         {
             var x = Random.Shared.NextInt64(0, (long)Math.Pow(2, 44));
@@ -258,56 +267,43 @@ public class Day24 : BaseDay
             valueNodes.LoadXValue(x);
             valueNodes.LoadYValue(y);
             computeNodes.Compute();
-            output = valueNodes.GetZValue();
-            if (output != (x + y))
+            var toutput = valueNodes.GetZValue();
+            if (toutput != (x + y))
             {
-                Console.WriteLine($"X {x} Y {y} Expected {x + y} Actual {output}");
+                Console.WriteLine($"X {x} Y {y} Expected {x + y} Actual {toutput}");
             }
         }
-        var realOutput = string.Join(",", new List<string> { "gst","khg","nhn","tvb","vdc","z12","z21","z33"}.Order());
-        return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2 {realOutput}");
+        return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2 {string.Join(",", allSwaps.Order())}");
     }
 
-    private List<ComputeNode> FindOpsInCommon(ValueNode node1, ValueNode node2)
-    {
-        var node1Inputs = FindAllInputs(node1);
-        var node2Inputs = FindAllInputs(node2);
-        return node1Inputs.Where(node => node2Inputs.Contains(node)).ToList();
-    }
+    // private List<ComputeNode> FindOpsInCommon(ValueNode node1, ValueNode node2)
+    // {
+    //     var node1Inputs = FindAllPrecursorOperations(node1);
+    //     var node2Inputs = FindAllPrecursorOperations(node2);
+    //     return node1Inputs.Where(node => node2Inputs.Contains(node)).ToList();
+    // }
 
-    private List<ComputeNode> FindUniqueOps(ValueNode node1, ValueNode node2)
-    {
-        var node1Inputs = FindAllInputs(node1);
-        var node2Inputs = FindAllInputs(node2);
-        var output = node1Inputs.Where(node => !node2Inputs.Contains(node)).ToList();
-        output.AddRange(node2Inputs.Where(node => !node1Inputs.Contains(node)).ToList());
-        return output;
-    }
-    private List<ComputeNode> FindAllInputs(ValueNode node)
+    // private List<ComputeNode> FindUniqueOps(ValueNode node1, ValueNode node2)
+    // {
+    //     var node1Inputs = FindAllPrecursorOperations(node1);
+    //     var node2Inputs = FindAllPrecursorOperations(node2);
+    //     var output = node1Inputs.Where(node => !node2Inputs.Contains(node)).ToList();
+    //     output.AddRange(node2Inputs.Where(node => !node1Inputs.Contains(node)).ToList());
+    //     return output;
+    // }
+
+    private static List<ComputeNode> FindAllPrecursorOperations(ValueNode node)
     {
         if (node.PrevOperation == null)
             return [];
 
         var output = new List<ComputeNode> { node.PrevOperation };
-        output.AddRange(FindAllInputs(node.PrevOperation.Input1));
-        output.AddRange(FindAllInputs(node.PrevOperation.Input2));
+        output.AddRange(FindAllPrecursorOperations(node.PrevOperation.Input1));
+        output.AddRange(FindAllPrecursorOperations(node.PrevOperation.Input2));
 
         return output;
     }
 
-    private string? GeneratePrintChain(ValueNode node)
-    {
-        //Print out
-        // ( PrintChain2(node.prevOp.Input1) ) OP ( PrintChain2(node.PrevOp.Input2) 
-        if (node.PrevOperation == null) return null;
-
-        var printOut = node.PrevOperation.GetStackString();
-        var input1Replace = GeneratePrintChain(node.PrevOperation.Input1) ?? node.PrevOperation.Input1.Name;
-        var input2Replace = GeneratePrintChain(node.PrevOperation.Input2) ?? node.PrevOperation.Input2.Name;
-
-        return printOut.Replace(node.PrevOperation.Input1.Name, $"({input1Replace})").Replace(node.PrevOperation.Input2.Name, $"({input2Replace})");
-
-    }
     private void PrintChain(ValueNode node, int indent = 75)
     {
         var prevOp = node.PrevOperation;
@@ -406,7 +402,7 @@ public class ValueNode
 {
     public string Name { get; set; }
     public int Value { get; set; } = -1;
-    // public ComputeNode? NextOperation { get; set; }
+    // public ComputeNode? NextOperation { get; set; } //would need to be a list if we need forward tracking
     public ComputeNode? PrevOperation { get; set; }
     public ValueNode(string name) => Name = name;
 }
