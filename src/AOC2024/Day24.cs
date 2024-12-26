@@ -117,11 +117,17 @@ public class Day24 : BaseDay
         // Console.WriteLine(" **** z12 **** ");
         // PrintChain(valueNodes["z12"]);
 
-        // Results from manually debugging
-        // valueNodes.SwapOps("z12", "vdc"); // right
-        // valueNodes.SwapOps("z21", "nhn"); // right 
-        // valueNodes.SwapOps("tvb", "khg"); //brute :)        
-        // valueNodes.SwapOps("z33", "gst"); //right
+        // Fix the broken input
+        // valueNodes.SwapOps("z12", "vdc");
+        // valueNodes.SwapOps("z21", "nhn");
+        // valueNodes.SwapOps("tvb", "khg");
+        // valueNodes.SwapOps("z33", "gst");
+
+        // // Then see if the logic can undo these swaps.
+        // valueNodes.SwapOps("z06", "jft");
+        // valueNodes.SwapOps("z12", "z11");
+        // valueNodes.SwapOps("z30", "z31");
+        // valueNodes.SwapOps("z40", "fdv"); //dfs,fdv
 
         // int swapsFound = 0;
         var allSwaps = new List<string>();
@@ -169,7 +175,7 @@ public class Day24 : BaseDay
                     valueNodes.SwapOps(swap1, swap2);
                     try
                     {
-                        var testCaseBits = Enumerable.Range(1, Math.Max(inputBit, outputBit) ); 
+                        var testCaseBits = Enumerable.Range(1, Math.Max(inputBit, outputBit));
                         foreach (var bit in testCaseBits)
                         {
                             testCase = Convert.ToInt64(Math.Pow(2, bit));
@@ -214,7 +220,7 @@ public class Day24 : BaseDay
                             valueNodes.LoadXValue(testCase);
                             valueNodes.LoadYValue(testCase);
                             computeNodes.Compute();
-                            if (valueNodes.GetZValue() != 2*testCase)
+                            if (valueNodes.GetZValue() != 2 * testCase)
                             {
                                 throw new Exception("Failed XY double test case");
                             }
