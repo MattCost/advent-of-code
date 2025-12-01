@@ -18,7 +18,7 @@ public class Day19 : BaseDay
             RequestedPatterns.Add(line);
         }
 
-        Console.WriteLine($"We have {AvailableTowels.Count} different towels available, and {RequestedPatterns.Count} patterns to create");
+        // Console.WriteLine($"We have {AvailableTowels.Count} different towels available, and {RequestedPatterns.Count} patterns to create");
     }
 
     public override ValueTask<string> Solve_1()

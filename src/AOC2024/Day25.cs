@@ -36,7 +36,7 @@ public class Day25 : BaseDay
             }
         }
 
-        Console.WriteLine($"There are {_locks.Count} locks and {_keys.Count} keys to try");
+        // Console.WriteLine($"There are {_locks.Count} locks and {_keys.Count} keys to try");
     }
 
     public override ValueTask<string> Solve_1()
