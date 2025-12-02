@@ -9,8 +9,13 @@
             "type": "dotnet",
             "request": "launch",
             "projectPath": "${workspaceFolder}/src/AOC2024/AOC2024.csproj"
+        },
+        {
+            "name": "C#: 2025 Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/AOC2025/AOC2025.csproj"
         }
-        
 
     ]
 }
