@@ -31,15 +31,15 @@ public class Day03 : BaseDay
             //if not at end of line, find next largest number to the right
             if (bank.IndexOf(largestMatch) == bank.Length - 1)
             {
-                Console.WriteLine("Largest match is at end");
+                // Console.WriteLine("Largest match is at end");
                 var secondMatch = targets.Where(target => bank.Substring(0, bank.Length - 1).IndexOf(target) != -1).First();
-                Console.WriteLine($"Bank {bank} - SecondMatch {secondMatch} LargestMatch {largestMatch}");
+                // Console.WriteLine($"Bank {bank} - SecondMatch {secondMatch} LargestMatch {largestMatch}");
                 output += long.Parse($"{secondMatch}{largestMatch}");
             }
             else
             {
                 var secondMatch = targets.Where(target => bank.Substring(bank.IndexOf(largestMatch) + 1).IndexOf(target) != -1).First();
-                Console.WriteLine($"Bank {bank} -  LargestMatch {largestMatch} SecondMatch {secondMatch}");
+                // Console.WriteLine($"Bank {bank} -  LargestMatch {largestMatch} SecondMatch {secondMatch}");
 
                 output += long.Parse($"{largestMatch}{secondMatch}");
             }
