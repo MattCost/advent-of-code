@@ -54,22 +54,55 @@ public class Day03 : BaseDay
     public override ValueTask<string> Solve_2()
     {
         long output = 0;
-        var targets = Enumerable.Range(1, 9).OrderDescending().Select(x => x.ToString());
-        foreach (var bank in BatteryBanks)
+        foreach (var workingBank in BatteryBanks)
         {
-            var currentBank = new StringBuilder();
-            var currentIndex = 0;
-            for (int i = 11; i >= 0; i--)
+            var outputBank = new StringBuilder();
+            var startIndex = 0;
+            var endIndex = workingBank.Length - 11;
+            for (int i = 0; i <= 11; i++)
             {
-                var workingBank = bank.Substring(currentIndex, bank.Length - (i + currentIndex));
-                var largestMatch = targets.Where(target => workingBank.IndexOf(target) != -1).First();
-                currentBank.Append(largestMatch);
-                currentIndex += workingBank.IndexOf(largestMatch) + 1;
-            }
-            Console.WriteLine($"Bank {bank} - Max Power {currentBank.ToString()}");
-            output += long.Parse(currentBank.ToString());
-        }
+                char largestNumber = '0';
+                int largestIndex = 0;
+                int currentIndex = startIndex;
+                while(currentIndex < endIndex)
+                {
+                    if(workingBank[currentIndex] == '9')
+                    {
+                        largestIndex = currentIndex;
+                        largestNumber = '9';
+                        break;
+                    }
 
+                    if(workingBank[currentIndex] > largestNumber)
+                    {
+                        largestNumber = workingBank[currentIndex];
+                        largestIndex = currentIndex;
+                    }
+                    currentIndex++;
+                }
+                outputBank.Append(largestNumber);
+                startIndex = largestIndex+1;
+                endIndex++;
+            }
+            // Console.WriteLine($"Bank {workingBank} - Max Power {outputBank.ToString()}"); //0.354ms
+            output += long.Parse(outputBank.ToString());
+        }  
+        
+        // var targets = Enumerable.Range(1, 9).OrderDescending().Select(x => x.ToString());
+        // foreach (var bank in BatteryBanks)
+        // {
+        //     var currentBank = new StringBuilder();
+        //     var currentIndex = 0;
+        //     for (int i = 11; i >= 0; i--)
+        //     {
+        //         var workingBank = bank.Substring(currentIndex, bank.Length - (i + currentIndex));
+        //         var largestMatch = targets.Where(target => workingBank.IndexOf(target) != -1).First();
+        //         currentBank.Append(largestMatch);
+        //         currentIndex += workingBank.IndexOf(largestMatch) + 1;
+        //     }
+        //     // Console.WriteLine($"Bank {bank} - Max Power {currentBank.ToString()}"); //3 ms
+        //     output += long.Parse(currentBank.ToString());
+        // }
 
         return new($"{output}");
 
