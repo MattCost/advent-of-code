@@ -171,5 +171,29 @@ namespace AdventOfCode.Base.Grid8Way
             }
 
         }
+
+        public void ResetVisited()
+        {
+            for(int r=0 ; r<Rows ; r++)
+                for(int c=0; c<Cols ; c++)
+                    Nodes[r,c].Visited = false;
+        }
+        public List<Grid8WayNode<T>> GetAdjacentNodes(int row, int col) //, T? filter = null)
+        {
+            var output = new List<Grid8WayNode<T>>();
+            if(row < 0 || row > Rows )
+                throw new ArgumentOutOfRangeException(nameof(row));
+
+            if( col < 0 || col > Cols) 
+                throw new ArgumentOutOfRangeException(nameof(col));
+
+            var node = Nodes[row,col];
+            foreach(var adjacentNode in node.Edges)
+            {
+                output.Add(adjacentNode.Node);
+            }
+
+            return output;
+        }
     }
 }
