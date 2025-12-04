@@ -23,6 +23,10 @@ public class Day04 : BaseDay
     {
         public bool ContainsRoll { get; set; } = false;
         public int NeighboringRolls { get; set; } = 0;
+        public override string ToString()
+        {
+            return NeighboringRolls.ToString();
+        }
     }
 
     public override ValueTask<string> Solve_1()
@@ -30,42 +34,37 @@ public class Day04 : BaseDay
         long output = 0;
 
         var grid = GenerateGrid();
-        // grid.PrintGrid();
 
         var allNodes = grid.Nodes.Cast<Grid8WayNode<PaperLocation>>();
         output = allNodes.Where(node => node.Value.ContainsRoll && node.Value.NeighboringRolls < 4).Count();
-        // for (int r = 0; r < grid.Rows; r++)
-        // {
-        //     for (int c = 0; c < grid.Cols; c++)
-        //     {
-        //         if (grid.Nodes[r, c].Value == '@')
-        //         {
-        //             var adjacentNodes = grid.GetAdjacentNodes(r, c);
-        //             int adjacentPaperRollCount = 0;
-        //             for (int i = 0; i < adjacentNodes.Count; i++)
-        //             {
-        //                 if (adjacentNodes[i].Visited == false)
-        //                 {
-        //                     adjacentNodes[i].Visited = true;
-        //                     if (adjacentNodes[i].Value == '@')
-        //                         adjacentPaperRollCount++;
-        //                 }
-        //             }
-        //             // Console.WriteLine($"Row:{r} Col:{c} AdjacentCount:{adjacentPaperRollCount}");
-        //             if (adjacentPaperRollCount < 4)
-        //             {
-        //                 output++;
-        //             }
-        //             grid.ResetVisited();
-        //         }
-        //     }
-        // }
+
         return new($"{output}");
     }
 
     public override ValueTask<string> Solve_2()
     {
-        return new($"Solution to {ClassPrefix} {CalculateIndex()}, part 2");
+        long output = 0;
+        long currentRound = 0;
+
+        var grid = GenerateGrid();
+        var allNodes = grid.Nodes.Cast<Grid8WayNode<PaperLocation>>();
+
+        do
+        {
+            var rollsToRemove = allNodes.Where(node => node.Value.ContainsRoll && node.Value.NeighboringRolls < 4).ToList();
+            currentRound = rollsToRemove.Count;
+
+            output += currentRound;
+
+            foreach( var roll in rollsToRemove)
+            {
+                roll.Value.ContainsRoll = false;
+                roll.Edges.ForEach( x => x.Node.Value.NeighboringRolls--);
+            }
+        }
+        while(currentRound > 0);
+
+        return new($"{output}");
     }
 
     private Grid8Way<PaperLocation> GenerateGrid()
