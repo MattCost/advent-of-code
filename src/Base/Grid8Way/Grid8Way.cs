@@ -143,14 +143,14 @@ namespace AdventOfCode.Base.Grid8Way
                     {
                         Nodes[row, col].Edges.Add(new Grid8WayEdge<T>(Nodes[row, col - 1], Direction.Left));
 
-                        if (row > 0)
-                        {
-                            Nodes[row, col].Edges.Add(new Grid8WayEdge<T>(Nodes[row - 1, col - 1], Direction.UpLeft));
-                        }
-                        if (row < Rows - 1)
-                        {
-                            Nodes[row, col].Edges.Add(new Grid8WayEdge<T>(Nodes[row + 1, col - 1], Direction.DownLeft));
-                        }
+                        // if (row > 0)
+                        // {
+                        //     Nodes[row, col].Edges.Add(new Grid8WayEdge<T>(Nodes[row - 1, col - 1], Direction.UpLeft));
+                        // }
+                        // if (row < Rows - 1)
+                        // {
+                        //     Nodes[row, col].Edges.Add(new Grid8WayEdge<T>(Nodes[row + 1, col - 1], Direction.DownLeft));
+                        // }
                     }
 
                     // Rights
@@ -158,14 +158,14 @@ namespace AdventOfCode.Base.Grid8Way
                     {
                         Nodes[row, col].Edges.Add(new Grid8WayEdge<T>(Nodes[row, col + 1], Direction.Right));
 
-                        if (row > 0)
-                        {
-                            Nodes[row, col].Edges.Add(new Grid8WayEdge<T>(Nodes[row - 1, col + 1], Direction.UpRight));
-                        }
-                        if (row < Rows - 1)
-                        {
-                            Nodes[row, col].Edges.Add(new Grid8WayEdge<T>(Nodes[row + 1, col + 1], Direction.DownRight));
-                        }
+                        // if (row > 0)
+                        // {
+                        //     Nodes[row, col].Edges.Add(new Grid8WayEdge<T>(Nodes[row - 1, col + 1], Direction.UpRight));
+                        // }
+                        // if (row < Rows - 1)
+                        // {
+                        //     Nodes[row, col].Edges.Add(new Grid8WayEdge<T>(Nodes[row + 1, col + 1], Direction.DownRight));
+                        // }
                     }
                 }
             }
