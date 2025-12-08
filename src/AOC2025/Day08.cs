@@ -69,7 +69,7 @@ public class Day08 : BaseDay
                 distanceTracker.Add(new(junctionBoxes[i].DistanceTo(junctionBoxes[j]), junctionBoxes[i], junctionBoxes[j]));
             }
         }
-        Console.WriteLine("Distance Map Calculated");
+
         distanceTracker = distanceTracker.OrderBy(x => x.Distance).ToList();
 
         List<JunctionBoxNetwork> networkTracker = new();
@@ -134,7 +134,72 @@ public class Day08 : BaseDay
     {
         long output = 0;
 
+        List<(double Distance, JunctionBox Node1, JunctionBox Node2)> distanceTracker = new();
+        for (int i = 0; i < junctionBoxes.Count - 1; i++)
+        {
+            for (int j = i + 1; j < junctionBoxes.Count; j++)
+            {
+                distanceTracker.Add(new(junctionBoxes[i].DistanceTo(junctionBoxes[j]), junctionBoxes[i], junctionBoxes[j]));
+            }
+        }
+
+        distanceTracker = distanceTracker.OrderBy(x => x.Distance).ToList();
+
+        List<JunctionBoxNetwork> networkTracker = new();
+        
+        int distanceIndex = 0;
+        while (true)
+        {
+            // Get closest 2 boxes;
+            var node1 = distanceTracker[distanceIndex].Node1;
+            var node2 = distanceTracker[distanceIndex].Node2;
+            distanceIndex++;
+
+            // Search for networks
+            var node1Network = networkTracker.Where(network => network.ContainsJunctionBox(node1));
+            var node2Network = networkTracker.Where(network => network.ContainsJunctionBox(node2));
+            
+            // Nodes already in same network
+            if (node1Network.Any() && node2Network.Any() && node1Network.Single() == node2Network.Single())
+            {
+                
+            }
+            else
+
+            //Node 1 in network, node 2 in network -> add node 2's network to node 1's network, and delete node 2's network
+            if(node1Network.Any() && node2Network.Any())
+            {
+                var node1N = node1Network.Single();
+                var node2N = node2Network.Single();
+                node1N.AddNetwork(node2N);
+                networkTracker.Remove(node2N);
+            } 
+            //Node 1 IN network, node 2 not in network  -> add node 2 to node 1's network
+            else if(node1Network.Any() && !node2Network.Any())
+            {
+                node1Network.Single().AddJunctionBox(node2);
+            }
+            else if(node2Network.Any() && !node1Network.Any())
+            {
+                node2Network.Single().AddJunctionBox(node1);
+            }
+            //Node 1 NOT in network, node 2 NOT in netwrk -> create new network
+            else
+            {
+                var network = new JunctionBoxNetwork();
+                network.AddJunctionBox(node1);
+                network.AddJunctionBox(node2);
+                networkTracker.Add(network);
+            }
+
+            if(networkTracker.Count == 1 && networkTracker[0].Nodes.Count == _lines.Count)
+            {
+                var pair = distanceTracker[distanceIndex-1];
+                output = (long)pair.Node1.X * (long)pair.Node2.X;
+                break;
+            }
+        }
+
         return new($"{output}");
     }
-
 }
