@@ -72,10 +72,21 @@ public class Day08 : BaseDay
 
         distanceTracker = distanceTracker.OrderBy(x => x.Distance).ToList();
 
-        List<JunctionBoxNetwork> networkTracker = new();
+        int networkId = 1;
+        Dictionary<string, int> networksByNodeId = new()
+        {
+            { distanceTracker[0].Node1.Id, networkId },
+            { distanceTracker[0].Node2.Id, networkId }
+        };
 
-        int linkCounter = 0;
-        int distanceIndex = 0;
+        Dictionary<int, List<string>> nodeIdsByNetwork = new()
+        {
+            { networkId, [distanceTracker[0].Node1.Id, distanceTracker[0].Node2.Id] }
+        };
+        networkId++;
+
+        int linkCounter = 1;
+        int distanceIndex = 1;
         while (linkCounter < 1000)
         {
             // Get closest 2 boxes;
@@ -84,47 +95,53 @@ public class Day08 : BaseDay
             distanceIndex++;
 
             // Search for networks
-            var node1Network = networkTracker.Where(network => network.ContainsJunctionBox(node1));
-            var node2Network = networkTracker.Where(network => network.ContainsJunctionBox(node2));
+            var node1Network = networksByNodeId.TryGetValue(node1.Id, out int value) ? value : -1;
+            var node2Network = networksByNodeId.TryGetValue(node2.Id, out value) ? value : -1;
 
             // The puzzle description is confusing "nothing happens" implies you don't need to make a link, but it seems to mean nothing happens to the circuit, as it was already complete
             // which means this could have been a for loop
             linkCounter++;
-            
+
             // Nodes already in same network
-            if (node1Network.Any() && node2Network.Any() && node1Network.Single() == node2Network.Single())
+            if (node1Network != -1 && node2Network != -1 && node1Network == node2Network)
             {
                 continue;
             }
 
             //Node 1 in network, node 2 in network -> add node 2's network to node 1's network, and delete node 2's network
-            if(node1Network.Any() && node2Network.Any())
+            if (node1Network != -1 && node2Network != -1)
             {
-                var node1N = node1Network.Single();
-                var node2N = node2Network.Single();
-                node1N.AddNetwork(node2N);
-                networkTracker.Remove(node2N);
-            } 
+                var nodesInNetwork2 = nodeIdsByNetwork[node2Network];
+                foreach (var node in nodesInNetwork2)
+                {
+                    networksByNodeId[node] = node1Network;
+                }
+                nodeIdsByNetwork.Remove(node2Network);
+
+                nodeIdsByNetwork[node1Network].AddRange(nodesInNetwork2);
+            }
             //Node 1 IN network, node 2 not in network  -> add node 2 to node 1's network
-            else if(node1Network.Any() && !node2Network.Any())
+            else if (node1Network != -1 && node2Network == -1)
             {
-                node1Network.Single().AddJunctionBox(node2);
+                networksByNodeId[node2.Id] = node1Network;
+                nodeIdsByNetwork[node1Network].Add(node2.Id);
             }
-            else if(node2Network.Any() && !node1Network.Any())
+            //opposite
+            else if (node2Network != -1 && node1Network == -1)
             {
-                node2Network.Single().AddJunctionBox(node1);
+                networksByNodeId[node1.Id] = node2Network;
+                nodeIdsByNetwork[node2Network].Add(node1.Id);
             }
-            //Node 1 NOT in network, node 2 NOT in netwrk -> create new network
+            // else neither node in a network            
             else
             {
-                var network = new JunctionBoxNetwork();
-                network.AddJunctionBox(node1);
-                network.AddJunctionBox(node2);
-                networkTracker.Add(network);
+                networksByNodeId[node1.Id] = networkId;
+                networksByNodeId[node2.Id] = networkId;
+                nodeIdsByNetwork[networkId++] = [node1.Id, node2.Id];
             }
         }
 
-        var x = networkTracker.OrderByDescending(network => network.Nodes.Count).Take(3).Select(network => network.Nodes.Count).ToList();
+        var x = nodeIdsByNetwork.Values.OrderByDescending(x => x.Count).Take(3).Select(x => x.Count).ToList();
         output = x[0] * x[1] * x[2];
 
         return new($"{output}");
@@ -145,8 +162,20 @@ public class Day08 : BaseDay
 
         distanceTracker = distanceTracker.OrderBy(x => x.Distance).ToList();
 
-        List<JunctionBoxNetwork> networkTracker = new();
-        
+        int networkId = 1;
+        Dictionary<string, int> networksByNodeId = new()
+        {
+            { distanceTracker[0].Node1.Id, networkId },
+            { distanceTracker[0].Node2.Id, networkId }
+        };
+
+        Dictionary<int, List<string>> nodeIdsByNetwork = new()
+        {
+            { networkId, [distanceTracker[0].Node1.Id, distanceTracker[0].Node2.Id] }
+        };
+        networkId++;
+
+
         int distanceIndex = 0;
         while (true)
         {
@@ -156,45 +185,51 @@ public class Day08 : BaseDay
             distanceIndex++;
 
             // Search for networks
-            var node1Network = networkTracker.Where(network => network.ContainsJunctionBox(node1));
-            var node2Network = networkTracker.Where(network => network.ContainsJunctionBox(node2));
-            
+            var node1Network = networksByNodeId.TryGetValue(node1.Id, out int value) ? value : -1;
+            var node2Network = networksByNodeId.TryGetValue(node2.Id, out value) ? value : -1;
+
             // Nodes already in same network
-            if (node1Network.Any() && node2Network.Any() && node1Network.Single() == node2Network.Single())
+            if (node1Network != -1 && node2Network != -1 && node1Network == node2Network)
             {
-                
+                continue;
             }
-            else
+
 
             //Node 1 in network, node 2 in network -> add node 2's network to node 1's network, and delete node 2's network
-            if(node1Network.Any() && node2Network.Any())
+            if (node1Network != -1 && node2Network != -1)
             {
-                var node1N = node1Network.Single();
-                var node2N = node2Network.Single();
-                node1N.AddNetwork(node2N);
-                networkTracker.Remove(node2N);
-            } 
+                var nodesInNetwork2 = nodeIdsByNetwork[node2Network];
+                foreach (var node in nodesInNetwork2)
+                {
+                    networksByNodeId[node] = node1Network;
+                }
+                nodeIdsByNetwork.Remove(node2Network);
+
+                nodeIdsByNetwork[node1Network].AddRange(nodesInNetwork2);
+            }
             //Node 1 IN network, node 2 not in network  -> add node 2 to node 1's network
-            else if(node1Network.Any() && !node2Network.Any())
+            else if (node1Network != -1 && node2Network == -1)
             {
-                node1Network.Single().AddJunctionBox(node2);
-            }
-            else if(node2Network.Any() && !node1Network.Any())
+                networksByNodeId[node2.Id] = node1Network;
+                nodeIdsByNetwork[node1Network].Add(node2.Id);
+            }            //opposite
+            else if (node2Network != -1 && node1Network == -1)
             {
-                node2Network.Single().AddJunctionBox(node1);
-            }
-            //Node 1 NOT in network, node 2 NOT in netwrk -> create new network
-            else
-            {
-                var network = new JunctionBoxNetwork();
-                network.AddJunctionBox(node1);
-                network.AddJunctionBox(node2);
-                networkTracker.Add(network);
+                networksByNodeId[node1.Id] = node2Network;
+                nodeIdsByNetwork[node2Network].Add(node1.Id);
             }
 
-            if(networkTracker.Count == 1 && networkTracker[0].Nodes.Count == _lines.Count)
+            // else neither node in a network            
+            else
             {
-                var pair = distanceTracker[distanceIndex-1];
+                networksByNodeId[node1.Id] = networkId;
+                networksByNodeId[node2.Id] = networkId;
+                nodeIdsByNetwork[networkId++] = [node1.Id, node2.Id];
+            }
+
+            if (nodeIdsByNetwork.Values.Count == 1 && nodeIdsByNetwork.Values.First().Count == _lines.Count)
+            {
+                var pair = distanceTracker[distanceIndex - 1];
                 output = (long)pair.Node1.X * (long)pair.Node2.X;
                 break;
             }
