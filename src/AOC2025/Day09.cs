@@ -1,7 +1,8 @@
 public class Day09 : BaseDay
 {
     List<string> _lines = new();
-    List<(long X, long Y)> points = new();
+    List<(int X, int Y)> points = new();
+
     public Day09()
     {
         StreamReader sr = new StreamReader(InputFilePath);
@@ -11,7 +12,7 @@ public class Day09 : BaseDay
         {
             _lines.Add(line);
             var parts = line.Split(',');
-            points.Add(new(long.Parse(parts[0]), long.Parse(parts[1])));
+            points.Add(new(int.Parse(parts[0]), int.Parse(parts[1])));
         }
 
     }
@@ -32,9 +33,11 @@ public class Day09 : BaseDay
         }
         return new($"{output}");
     }
+
     public override ValueTask<string> Solve_2()
     {
         long output = 0;
+     
         var graph = new Graph();
         var firstNode = new Node { X = points[0].X, Y = points[0].Y };
         graph.Nodes.Add(firstNode);
@@ -53,54 +56,129 @@ public class Day09 : BaseDay
 
         graph.Edges.Add(new Edge { P1 = prevNode, P2 = firstNode });
 
+        // Bitmap logic, works
+        var maxX = points.Select(p => p.X).Max() + 3;
+        var maxY = points.Select(p => p.Y).Max() + 2;
+        var bitmap = new byte[maxX][];
+
+        for (int x = 0; x < maxX; x++)
+        {
+            bitmap[x] = new byte[maxY];
+        }
+
+        foreach (var edge in graph.Edges)
+        {
+            if (edge.IsHorizontal)
+            {
+                var y = edge.P1.Y;
+                for (int x = Math.Min(edge.P1.X, edge.P2.X); x <= Math.Max(edge.P1.X, edge.P2.X); x++)
+                {
+                    bitmap[x][y] = 1;
+                }
+            }
+            else
+            {
+                var x = edge.P1.X;
+                for (int y = Math.Min(edge.P1.Y, edge.P2.Y); y <= Math.Max(edge.P1.Y, edge.P2.Y); y++)
+                {
+                    bitmap[x][y] = 1;
+                }
+            }
+        }
+
+        FloodFill(bitmap, 0, 0, 0, 2, maxX, maxY);
+
         for (int i = 0; i < points.Count; i++)
         {
             for (int j = i + 1; j < points.Count; j++)
             {
-                // Process 2 points
                 var p1 = points[i];
                 var p2 = points[j];
 
-                // if(p1.X == 11 && p1.Y==7 && p2.X==2 && p2.Y==5)
-                //     Console.WriteLine("whoops");
+                if(bitmap[p1.X][p1.Y] == 2) continue;
+                if(bitmap[p1.X][p2.Y] == 2) continue;
+                if(bitmap[p2.X][p1.Y] == 2) continue;
+                if(bitmap[p2.X][p2.Y] == 2) continue;
 
-                if( graph.Contains(p1.X, p1.Y) && graph.Contains(p2.X, p2.Y) && graph.Contains(p1.X, p2.Y) && graph.Contains(p2.X, p1.Y))
+                var newArea = (1 + Math.Abs(points[i].X - points[j].X)) * (1 + Math.Abs(points[i].Y - points[j].Y));
+                if(newArea < output) continue;
+
+
+                // line 1 p1.x, p1.y to p2.y
+                // line 2 p2.x, p1.y to p2.y
+                bool moveOn = false;
+                for (var y = Math.Min(p1.Y, p2.Y); y <= Math.Max(p1.Y, p2.Y); y++)
                 {
-                    // TODO all points along all 4 edges must be fully contained in the graph
-                        
-                    // Console.WriteLine($"P1 {p1} P2 {p2} are fully contained in graph");
-
-                    //Area calc like as in part 1
-                    var newArea = (1 + Math.Abs(points[i].X - points[j].X)) * (1 + Math.Abs(points[i].Y - points[j].Y));
-                    if (newArea > output)
+                    if (bitmap[p1.X][y]==2 || bitmap[p2.X][y]==2)
                     {
-                        output = newArea;
+                        moveOn = true;
+                        break;
                     }
                 }
-                else
+                if (moveOn) continue;
+
+                // line 3 p1.x to p2.x, p1.y
+                // line 4 p1.x to p2.x, p2.y
+                for (var x = Math.Min(p1.X, p2.X); x <= Math.Max(p1.X, p2.X); x++)
                 {
-                    // Console.WriteLine($"P1 {p1} P2 {p2} NOT fully contained in graph");                    
+                    if (bitmap[x][p1.Y]==2 || bitmap[x][p2.Y] == 2)
+                    {
+                        moveOn = true;
+                        break;
+                    }
                 }
+                if (moveOn) continue;
 
-
+                if (newArea > output)
+                {
+                    Console.WriteLine($"P1 {p1} P2 {p2} are fully contained in graph. Area {newArea}");
+                    output = newArea;
+                }
             }
         }
 
         return new($"{output}");
     }
 
+    private void FloodFill(byte[][] bitmap, int x, int y, byte old,  byte target, int maxX, int maxY)
+    {
+        if (x < 0) return;
+        if (x >= maxX) return;
+        if (y < 0) return;
+        if (y >= maxY) return;
+        if(bitmap[x][y] != old) return;
+
+        var queue = new Queue<(int x, int y)>();
+        queue.Enqueue((x,y));
+        while(queue.Count > 0)
+        {
+            var (xx, yy) = queue.Dequeue();
+            if( xx< 0  || xx>= maxX) continue;
+            if( yy<0 || yy>=maxY) continue;
+            if(bitmap[xx][yy] != old) continue;
+            if(bitmap[xx][yy] == target) continue;
+            bitmap[xx][yy] = target;
+            queue.Enqueue( (xx-1, yy));
+            queue.Enqueue( (xx+1, yy));
+            queue.Enqueue( (xx, yy-1));
+            queue.Enqueue( (xx, yy+1));
+        }
+    }
+
     private class Node
     {
-        public long X { get; set; }
-        public long Y { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
     }
+
     private class Edge
     {
         public Node P1 { get; set; } = new();
         public Node P2 { get; set; } = new();
 
         public bool IsHorizontal => P1.Y == P2.Y;
-        public bool Contains(long x, long y)
+        
+        public bool Contains(int x, int y)
         {
             if (IsHorizontal)
             {
@@ -111,6 +189,7 @@ public class Day09 : BaseDay
                 {
                     return true;
                 }
+
                 return false;
             }
             else
@@ -122,6 +201,7 @@ public class Day09 : BaseDay
                 {
                     return true;
                 }
+
                 return false;
 
             }
@@ -134,40 +214,62 @@ public class Day09 : BaseDay
         public List<Node> Nodes { get; set; } = new();
         public List<Edge> Edges { get; set; } = new();
 
-        public bool Contains(long x, long y)
-        {
-            // Early return edge cases first. If we land on a node, or edge, return true
-            if (Nodes.Where(node => node.X == x && node.Y == y).Any()) return true;
+        public Dictionary<int, Dictionary<int, bool>> _cache = new();
 
-            if (Edges.Where(edge => edge.Contains(x, y)).Any()) return true;
+        // public bool Contains(int x, int y)
+        // {
 
-            // Otherwise do a ray search
-            /*
-                Get all vertical edges to the right of the X coord
-                Do the magic counting algo
-            */
-
-            // Get all horizontal edges in with the same Y, to the right of the X coord
-            var horizontalEdges = Edges
-                .Where(edge => edge.IsHorizontal)
-                .Where(edge => edge.P1.Y == y)
-                .Where(edge => Math.Min(edge.P1.X, edge.P2.X) > x);
+        //     if(_cache.ContainsKey(x) && _cache[x].ContainsKey(y))
+        //         return _cache[x][y];
             
-            // Get all vertical edges, to the right of the X coord, that overlap our point.
-            var verticalEdges = Edges
-                .Where(edge => !edge.IsHorizontal)
-                .Where(edge => edge.P1.X > x)
-                .Where(edge => Math.Min(edge.P1.Y, edge.P2.Y) <= y && y<=Math.Max(edge.P1.Y, edge.P2.Y));
+        //     bool output = false;
 
-            // odd means inside
-            // even means outside
-            if(verticalEdges.Count() % 2 == 1)
-                return true;
+        //     // Early return edge cases first. If we land on a node, or edge, return true
+        //     if (Nodes.Where(node => node.X == x && node.Y == y).Any()) 
+        //     {
+        //         output = true;
+        //     }
+        //     else if (Edges.Where(edge => edge.Contains(x, y)).Any())
+        //     {
+        //         output = true;
+        //     } 
+        //     else
+        //     {
+        //         // Otherwise do a ray search
+        //         /*
+        //             Get all vertical edges to the right of the X coord
+        //             Do the magic counting algo
+        //         */
 
-            return false;
-        }
+        //         // Get all horizontal edges in with the same Y, to the right of the X coord
+        //         // var horizontalEdges = Edges
+        //         //     .Where(edge => edge.IsHorizontal)
+        //         //     .Where(edge => edge.P1.Y == y)
+        //         //     .Where(edge => Math.Min(edge.P1.X, edge.P2.X) > x);
+
+        //         // Get all vertical edges, to the right of the X coord, that overlap our point.
+        //         var verticalEdges = Edges
+        //             .Where(edge => !edge.IsHorizontal)
+        //             .Where(edge => edge.P1.X > x)
+        //             .Where(edge => Math.Min(edge.P1.Y, edge.P2.Y) <= y && y <= Math.Max(edge.P1.Y, edge.P2.Y));
+
+        //         // odd means inside
+        //         // even means outside
+        //         if (verticalEdges.Count() % 2 == 1)
+        //         {
+        //             output = true;
+        //         }
+        //     }
+
+        //     //cache
+        //     if(!_cache.ContainsKey(x))
+        //     {
+        //         _cache[x] = new();
+        //     }
+        //     _cache[x][y] = output;
+
+        //     //re
+        //     return output;
+        // }
     }
-
 }
-// 4728331461 too high
-// Probably need to do my extra credit
