@@ -25,7 +25,7 @@ public class Day10 : BaseDay
 
         foreach (var machine in machines)
         {
-            output += machine.CalculateButtonPresses();
+            output += machine.CalculateButtonPressesIndicator();
         }
 
 
@@ -36,6 +36,10 @@ public class Day10 : BaseDay
     {
         long output = 0;
 
+        foreach (var machine in machines)
+        {
+            output += machine.CalculateButtonPressesJoltage();
+        }
         return new($"{output}");
     }
 
@@ -62,17 +66,44 @@ public class Day10 : BaseDay
                 var buttons = parts[i].TrimStart('(').TrimEnd(')').Split(',').Select(x => int.Parse(x)).ToList();
                 Buttons.Add(buttons);
             }
+
+            JoltageRequirements = parts.Last().TrimStart('{').TrimEnd('}').Split(',').Select(x => int.Parse(x)).ToList();
         }
 
-        // Ignore Joltage parts for now
-
-        public int CalculateButtonPresses()
+        private bool IsValidJoltageState(List<int> input)
         {
-            var _queue = new Queue<QueueEntry>();
+            if (input.Count != Buttons.Count) return false;
+
+            var currentState = new List<int>();
+            for (int i = 0; i < JoltageRequirements.Count; i++)
+            {
+                currentState.Add(0);
+            }
+            for (int i = 0; i < input.Count; i++)
+            {
+                var buttons = Buttons[i];
+                foreach (var button in buttons)
+                {
+                    currentState[button] += input[i];
+                }
+            }
+
+            var output = true;
+            for (int i = 0; i < currentState.Count; i++)
+            {
+                if (currentState[i] != JoltageRequirements[i])
+                    output = false;
+            }
+            return output;
+        }
+
+        public int CalculateButtonPressesIndicator()
+        {
+            var _queue = new Queue<QueueEntryIndicator>();
 
             for (int i = 0; i < Buttons.Count; i++)
             {
-                _queue.Enqueue(new QueueEntry(new bool[IndicatorLightSize], i, 1));
+                _queue.Enqueue(new QueueEntryIndicator(new bool[IndicatorLightSize], i, 1));
             }
 
             while (_queue.Count > 0)
@@ -96,19 +127,114 @@ public class Day10 : BaseDay
 
                 for (int i = 0; i < Buttons.Count; i++)
                 {
-                    _queue.Enqueue(new QueueEntry(working.CurrentState, i, working.Depth + 1));
+                    _queue.Enqueue(new QueueEntryIndicator(working.CurrentState, i, working.Depth + 1));
                 }
             }
 
             return 0;
         }
 
-        private class QueueEntry
+
+        /*
+               0   1     2   3     4     5      0,1,2,3
+        [.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
+
+
+        Button 0 - pushes 3.            Max of 7
+        Button 1 - pushes 1 and 3.      Max of 5
+        Button 2 - pushes 2.            Max of 4
+        Button 3 - pushes 2 and 3.      Max of 4
+        Button 4 - pushes 0 and 2.      Max of 3
+        Button 5 - pushes 0 and 1.      Max of 3
+
+        Figure out max button presses
+
+        Figure out valid combinations
+
+        put combos in order of least to most 
+
+        19200 possible combinations
+
+        */
+        public int CalculateButtonPressesJoltage()
+        {
+            Dictionary<int, int> maxPressesOfButton = Buttons.Select(buttons => buttons.Min(b => JoltageRequirements[b]) + 1).Select((x, i) => new { X = x, I = i }).ToDictionary(a => a.I, a => a.X);
+            
+            var combinations = GenerateCombinations(maxPressesOfButton);
+            Console.WriteLine($"Generated {combinations.Count()} combinations");
+
+            var validCombinations = combinations.Where(IsValidJoltageState);
+            Console.WriteLine($"{validCombinations.Count()} are valid");
+
+            var orderedValidCombinations = validCombinations.OrderBy(combination => combination.Sum());
+
+            if (orderedValidCombinations.Any()) return orderedValidCombinations.First().Sum();
+
+            return 0;
+        }
+
+        private bool SumCombination(List<int> combination)
+        {
+            throw new NotImplementedException();
+        }
+
+        private List<List<int>> GenerateCombinations(Dictionary<int, int> maxPressesOfButton)
+        {
+            var output = new List<List<int>>();
+            var childLists = GenerateCombinationsRecursive(maxPressesOfButton, 1);
+            for (int i = 0; i < maxPressesOfButton[0]; i++)
+            {
+                for (int j = 0; j < childLists.Count; j++)
+                {
+                    var newList = new List<int>
+                    {
+                        i
+                    };
+                    newList.AddRange(childLists[j]);
+                    output.Add(newList);
+
+                }
+            }
+
+            return output;
+        }
+
+        private List<List<int>> GenerateCombinationsRecursive(Dictionary<int, int> maxPressesOfButton, int button)
+        {
+            var output = new List<List<int>>();
+            if (button >= Buttons.Count)
+                return output;
+
+            var childLists = GenerateCombinationsRecursive(maxPressesOfButton, button + 1);
+            for (int i = 0; i < maxPressesOfButton[button]; i++)
+            {
+                if (childLists.Count > 0)
+                {
+                    for (int j = 0; j < childLists.Count; j++)
+                    {
+                        var newList = new List<int>
+                        {
+                            i
+                        };
+
+                        newList.AddRange(childLists[j]);
+                        output.Add(newList);
+                    }
+                }
+                else
+                {
+                    output.Add( new List<int> {i});
+                }
+            }
+            return output;
+        }
+
+        private class QueueEntryIndicator
         {
             public int Depth { get; set; }
             public bool[] CurrentState { get; set; }
             public int ButtonSelected { get; set; }
-            public QueueEntry(bool[] currentState, int buttons, int depth)
+            public QueueEntryIndicator(bool[] currentState, int buttons, int depth)
             {
                 CurrentState = new bool[currentState.Length];
                 for (int i = 0; i < currentState.Length; i++)
@@ -117,7 +243,23 @@ public class Day10 : BaseDay
                 Depth = depth;
             }
         }
+
+        private class QueueEntryJoltage
+        {
+            public int Depth { get; set; }
+            public List<int> CurrentState { get; set; }
+            public int ButtonSelected { get; set; }
+            public QueueEntryJoltage(List<int> currentState, int buttons, int depth)
+            {
+                CurrentState = new List<int>();
+                for (int i = 0; i < currentState.Count; i++)
+                    CurrentState.Add(currentState[i]);
+                ButtonSelected = buttons;
+                Depth = depth;
+            }
+        }
     }
 
 }
 
+//187 too low
