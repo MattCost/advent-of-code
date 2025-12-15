@@ -71,48 +71,6 @@ public class Day10 : BaseDay
             JoltageRequirements = parts.Last().TrimStart('{').TrimEnd('}').Split(',').Select(x => int.Parse(x)).ToList();
         }
 
-        // private bool IsValidJoltageState(List<int> buttonPressCounts)
-        // {
-        //     if (buttonPressCounts.Count != Buttons.Count) return false;
-
-        //     var currentState = new List<int>();
-        //     for (int i = 0; i < JoltageRequirements.Count; i++)
-        //     {
-        //         currentState.Add(0);
-        //     }
-        //     for (int i = 0; i < buttonPressCounts.Count; i++)
-        //     {
-        //         var buttons = Buttons[i];
-        //         foreach (var button in buttons)
-        //         {
-        //             currentState[button] += buttonPressCounts[i];
-        //         }
-        //     }
-
-        //     var output = true;
-        //     for (int i = 0; i < currentState.Count; i++)
-        //     {
-        //         if (currentState[i] != JoltageRequirements[i])
-        //             output = false;
-        //     }
-        //     return output;
-        // }
-
-        private int IsCurrentStateValid(int[] currentState)
-        {
-            if (currentState.Length != JoltageRequirements.Count) throw new ArgumentOutOfRangeException();
-            var output = 0;
-            for (int i = 0; i < currentState.Length; i++)
-            {
-                if (currentState[i] > JoltageRequirements[i])
-                    return -1;
-                if (currentState[i] < JoltageRequirements[i])
-                    output = 1;
-            }
-
-            return output;
-        }
-
         public int CalculateButtonPressesIndicator()
         {
             var _queue = new Queue<QueueEntryIndicator>();
@@ -151,41 +109,9 @@ public class Day10 : BaseDay
         }
 
 
-        /*
-               a   b     c   d     e     f      0,1,2,3
-        [.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
-
-        Button f - pushes 0 and 1.      Max of 3
-        Button e - pushes 0 and 2.      Max of 3
-        Button d - pushes 2 and 3.      Max of 4
-        Button c - pushes 2.            Max of 4
-        Button b - pushes 1 and 3.      Max of 5
-        Button a - pushes 3.            Max of 7
-        
-        
-
-        Figure out max button presses
-
-        Figure out valid combinations
-
-        put combos in order of least to most 
-
-        19200 possible combinations
-
-        This wont work for puzzle input
-
-
-
-        Start at 0,0,0,0
-        have 6 possible moves, so 6 new locations placed in priority heap
-        repeat. 
-
-
-        */
         public int CalculateButtonPressesJoltage()
         {
             Dictionary<int, int> maxPressesOfButton = Buttons.Select(buttons => buttons.Min(b => JoltageRequirements[b]) + 1).Select((x, i) => new { X = x, I = i }).ToDictionary(a => a.I, a => a.X);
-
 
             // Find most constrained output
             var mostConstrainedTargetCount = JoltageRequirements.Min();
@@ -194,60 +120,154 @@ public class Day10 : BaseDay
             // Find any buttons that target this index
             var possibleButtons = Buttons.Select((l, i) => new { buttons = l, index = i }).Where(x => x.buttons.Contains(mostConstrainedIndex));
 
-            // Generation combinations that add up to the Joltage requirement
-            var combinations = GenerateCombinations2(JoltageRequirements, possibleButtons.Select(x=>x.index).ToList(), mostConstrainedIndex, mostConstrainedTargetCount);
 
+            Console.WriteLine($"Most ConstrainedIndex {mostConstrainedIndex} - Target Count {mostConstrainedTargetCount}. There are {possibleButtons.Count()} buttons we can hit");
+
+            // Generation combinations that add up to the Joltage requirement
+            var combinations = GenerateCombinations2(possibleButtons.Select(x => x.index).ToList(), mostConstrainedTargetCount);
+
+            Console.WriteLine($"There are {combinations.Count()} combinations to review");
+            PriorityQueue<StateMachineEntry, int> _queue = new();
             // process those combinations
             foreach (var combination in combinations)
             {
                 // generate State entry
                 var stateEntry = new StateMachineEntry(JoltageRequirements, this.Buttons.Count, null, combination);
+                foreach (var buttonIndex in stateEntry.ButtonPressCount)
+                {
+                    var buttons = this.Buttons[buttonIndex];
+                    foreach (var button in buttons)
+                    {
+                        stateEntry.CurrentState[button]++;
+                    }
+                }
+
                 // add valid state entry to queue
+                if (!stateEntry.IsInvalid)
+                {
+                    _queue.Enqueue(stateEntry, stateEntry.TotalButtonPresses);
+                }
             }
+
+            while (_queue.Count > 0)
+            {
+                var currentEntry = _queue.Dequeue();
+                if (currentEntry.IsSatisfied)
+                    return currentEntry.TotalButtonPresses;
+                mostConstrainedTargetCount = currentEntry.RemainingJoltageRequirements.Where(x => x > 0).Min();
+                mostConstrainedIndex = currentEntry.RemainingJoltageRequirements.IndexOf(mostConstrainedTargetCount);
+
+                // possibleButtons = Buttons.Select((l, i) => new { buttons = l, index = i }).Where(x => x.buttons.Contains(mostConstrainedIndex));
+
+                var doNotUseIndex = currentEntry.RemainingJoltageRequirements.Select((x,i) => new { req = x, index =i}).Where(x => x.req ==0).Select( x=>x.index).ToList();
+                var doNotUseButtons = doNotUseIndex.SelectMany(doNotUse => Buttons.Select((l, i) => new { buttons = l, index = i }).Where(x => x.buttons.Contains(doNotUse)).Select(x => x.index));
+
+                possibleButtons = Buttons.Select((l, i) => new { buttons = l, index = i }).Where(x => x.buttons.Contains(mostConstrainedIndex)).Where(x => !doNotUseButtons.Contains(x.index));
+
+                if (!possibleButtons.Any())
+                    continue;
+
+                combinations = GenerateCombinations2(possibleButtons.Select(x => x.index).ToList(), mostConstrainedTargetCount);
+
+                foreach (var combination in combinations)
+                {
+                    var stateEntry = new StateMachineEntry(JoltageRequirements, this.Buttons.Count, currentEntry.CurrentState, currentEntry.ButtonPressCount);
+                    foreach (var buttonIndex in combination)
+                    {
+                        stateEntry.ButtonPressCount.Add(buttonIndex);
+                        var buttons = this.Buttons[buttonIndex];
+                        foreach (var button in buttons)
+                        {
+                            stateEntry.CurrentState[button]++;
+                        }
+                    }
+
+                    // add valid state entry to queue
+                    if (!stateEntry.IsInvalid)
+                    {
+                        _queue.Enqueue(stateEntry, stateEntry.TotalButtonPresses);
+                    }
+                }
+            }
+
 
             // rinse and repeat until valid or invalid state is reached
 
             return 0;
         }
 
-        private List<List<int>> GenerateCombinations2(List<int> joltageRequirements, List<int> possibleButtons, int index, int target, int depth = 0)
+        private List<List<int>> GenerateCombinations2(List<int> possibleButtons, int count, int currentButton = 0)
         {
-            // var output = new List<Dictionary<int,int>>();
             var output = new List<List<int>>();
-            if (depth < target)
+            /*
+                Pool of 2 buttons, 3 presses
+                    000
+                    001
+                    011
+                    111
+            
+                if list of buttons.Count = 1, return that button count times.
+                take button 0 3 times
+                take button 0 2 times, remove button 0 from pool, recursive
+                take button 0 1 times, remove button 0 from pool, recursive
+                take button 0 0 times, remove button 0 from pool, recursive
+            */
+
+            if (possibleButtons.Count == 1)
             {
-                for (int i = 0; i < possibleButtons.Count(); i++)
+                output.Add(Enumerable.Range(1, count).Select(x => possibleButtons[0]).ToList());
+            }
+            else
+            {
+                for (int i = 0; i <= count; i++)
                 {
-                    var childLists = GenerateCombinations2(joltageRequirements, possibleButtons, index, target, depth + 1);
-                    if (childLists.Count > 0)
+                    //remove possibleButtons[0] from copy of list
+                    var x = possibleButtons.Skip(1).ToList();
+                    //go recursive
+                    var childCombinations = GenerateCombinations2(x, count - i);
+
+                    foreach (var childCombination in childCombinations)
                     {
-                        for (int j = 0; j < childLists.Count; j++)
+                        //take possibleButtons[0] i times
+                        var newList = new List<int>();
+                        for (int j = 0; j < i; j++)
                         {
-                            var newList = new List<int> { possibleButtons[i] };
-                            newList.AddRange(childLists[j]);
-
-                            // prevent adding a duplicate here?
-                            newList.Sort();
-                            if (!AlreadyContains(output, newList))
-                                output.Add(newList);
-
-                            //compare against each list in output, and 
+                            newList.Add(possibleButtons[0]);
                         }
-                    }
-                    else
-                    {
-                        output.Add([possibleButtons[i]]);
+                        newList.AddRange(childCombination);
+                        output.Add(newList);
                     }
                 }
-                // I have 2 buttons to push, 3 times total.
-                // 111
-                // 112
-                // 122
-                // 222
-
             }
+
+
+            // if (depth < target)
+            // {
+            //     for (int i = 0; i < possibleButtons.Count(); i++)
+            //     {
+            //         var childLists = GenerateCombinations2(joltageRequirements, possibleButtons, index, target, depth + 1);
+            //         if (childLists.Count > 0)
+            //         {
+            //             for (int j = 0; j < childLists.Count; j++)
+            //             {
+            //                 var newList = new List<int> { possibleButtons[i] };
+            //                 newList.AddRange(childLists[j]);
+
+            //                 // prevent adding a duplicate
+            //                 newList.Sort();
+            //                 if (!AlreadyContains(output, newList))
+            //                     output.Add(newList);
+            //             }
+            //         }
+            //         else
+            //         {
+            //             output.Add([possibleButtons[i]]);
+            //         }
+            //     }
+            // }
             return output;
         }
+
 
         private bool AlreadyContains(List<List<int>> output, List<int> newList)
         {
@@ -267,57 +287,6 @@ public class Day10 : BaseDay
             return false;
         }
 
-        private List<List<int>> GenerateCombinations(Dictionary<int, int> maxPressesOfButton)
-        {
-            var output = new List<List<int>>();
-            var childLists = GenerateCombinationsRecursive(maxPressesOfButton, 1);
-            for (int i = 0; i < maxPressesOfButton[0]; i++)
-            {
-                for (int j = 0; j < childLists.Count; j++)
-                {
-                    var newList = new List<int>
-                    {
-                        i
-                    };
-                    newList.AddRange(childLists[j]);
-                    output.Add(newList);
-
-                }
-            }
-
-            return output;
-        }
-
-        private List<List<int>> GenerateCombinationsRecursive(Dictionary<int, int> maxPressesOfButton, int button)
-        {
-            var output = new List<List<int>>();
-            if (button >= Buttons.Count)
-                return output;
-
-            var childLists = GenerateCombinationsRecursive(maxPressesOfButton, button + 1);
-            for (int i = 0; i < maxPressesOfButton[button]; i++)
-            {
-                if (childLists.Count > 0)
-                {
-                    for (int j = 0; j < childLists.Count; j++)
-                    {
-                        var newList = new List<int>
-                        {
-                            i
-                        };
-
-                        newList.AddRange(childLists[j]);
-                        output.Add(newList);
-                    }
-                }
-                else
-                {
-                    output.Add(new List<int> { i });
-                }
-            }
-            return output;
-        }
-
         private class QueueEntryIndicator
         {
             public int Depth { get; set; }
@@ -332,21 +301,6 @@ public class Day10 : BaseDay
                 Depth = depth;
             }
         }
-
-        // private class QueueEntryJoltage
-        // {
-        //     public int Depth { get; set; }
-        //     public List<int> CurrentState { get; set; }
-        //     public int ButtonSelected { get; set; }
-        //     public QueueEntryJoltage(List<int> currentState, int buttons, int depth)
-        //     {
-        //         CurrentState = new List<int>();
-        //         for (int i = 0; i < currentState.Count; i++)
-        //             CurrentState.Add(currentState[i]);
-        //         ButtonSelected = buttons;
-        //         Depth = depth;
-        //     }
-        // }
 
         private class StateMachineEntry
         {
@@ -363,7 +317,7 @@ public class Day10 : BaseDay
                 }
                 else
                 {
-                    for(int i=0 ; i<current.Count ; i++)
+                    for (int i = 0; i < current.Count; i++)
                     {
                         CurrentState.Add(current[i]);
                     }
@@ -379,12 +333,12 @@ public class Day10 : BaseDay
                 }
                 else
                 {
-                    for(int i=0 ; i< buttonPressCount.Count ; i++)
+                    for (int i = 0; i < buttonPressCount.Count; i++)
                     {
                         ButtonPressCount.Add(buttonPressCount[i]);
                     }
                 }
-                
+
                 //Update Current State. But I need all button info from Machine
 
             }
@@ -394,8 +348,11 @@ public class Day10 : BaseDay
             public List<int> JoltageRequirements { get; init; }
             public List<int> CurrentState { get; set; } = new();
             public List<int> ButtonPressCount { get; set; } = new();
-            public int TotalButtonPresses => ButtonPressCount.Sum();
+            public int TotalButtonPresses => ButtonPressCount.Count();
             public List<int> RemainingJoltageRequirements => CurrentState.Select((x, i) => JoltageRequirements[i] - x).ToList();
+            public bool IsInvalid => RemainingJoltageRequirements.Any(x => x < 0);
+
+            public bool IsSatisfied => RemainingJoltageRequirements.Where(x => x == 0).Count() == JoltageRequirements.Count;
         }
     }
 
