@@ -151,7 +151,6 @@ public class Day10 : BaseDay
 
             while (_queue.Count > 0)
             {
-                Console.WriteLine($"Queue size {_queue.Count}");
                 var currentEntry = _queue.Dequeue();
                 if (currentEntry.IsSatisfied)
                     return currentEntry.TotalButtonPresses;
