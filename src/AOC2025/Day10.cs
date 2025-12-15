@@ -151,6 +151,7 @@ public class Day10 : BaseDay
 
             while (_queue.Count > 0)
             {
+                Console.WriteLine($"Queue size {_queue.Count}");
                 var currentEntry = _queue.Dequeue();
                 if (currentEntry.IsSatisfied)
                     return currentEntry.TotalButtonPresses;
@@ -159,7 +160,7 @@ public class Day10 : BaseDay
 
                 // possibleButtons = Buttons.Select((l, i) => new { buttons = l, index = i }).Where(x => x.buttons.Contains(mostConstrainedIndex));
 
-                var doNotUseIndex = currentEntry.RemainingJoltageRequirements.Select((x,i) => new { req = x, index =i}).Where(x => x.req ==0).Select( x=>x.index).ToList();
+                var doNotUseIndex = currentEntry.RemainingJoltageRequirements.Select((x, i) => new { req = x, index = i }).Where(x => x.req == 0).Select(x => x.index).ToList();
                 var doNotUseButtons = doNotUseIndex.SelectMany(doNotUse => Buttons.Select((l, i) => new { buttons = l, index = i }).Where(x => x.buttons.Contains(doNotUse)).Select(x => x.index));
 
                 possibleButtons = Buttons.Select((l, i) => new { buttons = l, index = i }).Where(x => x.buttons.Contains(mostConstrainedIndex)).Where(x => !doNotUseButtons.Contains(x.index));
@@ -182,7 +183,6 @@ public class Day10 : BaseDay
                         }
                     }
 
-                    // add valid state entry to queue
                     if (!stateEntry.IsInvalid)
                     {
                         _queue.Enqueue(stateEntry, stateEntry.TotalButtonPresses);
@@ -192,27 +192,13 @@ public class Day10 : BaseDay
 
 
             // rinse and repeat until valid or invalid state is reached
-
-            return 0;
+            throw new Exception("Bad code, how did you get here");
         }
 
         private List<List<int>> GenerateCombinations2(List<int> possibleButtons, int count, int currentButton = 0)
         {
+            // Combinations where order does not matter, and repeats are allowed
             var output = new List<List<int>>();
-            /*
-                Pool of 2 buttons, 3 presses
-                    000
-                    001
-                    011
-                    111
-            
-                if list of buttons.Count = 1, return that button count times.
-                take button 0 3 times
-                take button 0 2 times, remove button 0 from pool, recursive
-                take button 0 1 times, remove button 0 from pool, recursive
-                take button 0 0 times, remove button 0 from pool, recursive
-            */
-
             if (possibleButtons.Count == 1)
             {
                 output.Add(Enumerable.Range(1, count).Select(x => possibleButtons[0]).ToList());
@@ -221,70 +207,26 @@ public class Day10 : BaseDay
             {
                 for (int i = 0; i <= count; i++)
                 {
-                    //remove possibleButtons[0] from copy of list
-                    var x = possibleButtons.Skip(1).ToList();
-                    //go recursive
-                    var childCombinations = GenerateCombinations2(x, count - i);
+                    //remove possibleButtons[0] from copy of list and go recursive
+                    var childCombinations = GenerateCombinations2(possibleButtons.Skip(1).ToList(), count - i);
 
                     foreach (var childCombination in childCombinations)
                     {
                         //take possibleButtons[0] i times
-                        var newList = new List<int>();
-                        for (int j = 0; j < i; j++)
-                        {
-                            newList.Add(possibleButtons[0]);
-                        }
+                        var newList = Enumerable.Range(1,i).Select(x=>possibleButtons[0]).ToList();
+                        // var newList = new List<int>();
+
+                        // for (int j = 0; j < i; j++)
+                        // {
+                        //     newList.Add(possibleButtons[0]);
+                        // }
                         newList.AddRange(childCombination);
                         output.Add(newList);
                     }
                 }
             }
 
-
-            // if (depth < target)
-            // {
-            //     for (int i = 0; i < possibleButtons.Count(); i++)
-            //     {
-            //         var childLists = GenerateCombinations2(joltageRequirements, possibleButtons, index, target, depth + 1);
-            //         if (childLists.Count > 0)
-            //         {
-            //             for (int j = 0; j < childLists.Count; j++)
-            //             {
-            //                 var newList = new List<int> { possibleButtons[i] };
-            //                 newList.AddRange(childLists[j]);
-
-            //                 // prevent adding a duplicate
-            //                 newList.Sort();
-            //                 if (!AlreadyContains(output, newList))
-            //                     output.Add(newList);
-            //             }
-            //         }
-            //         else
-            //         {
-            //             output.Add([possibleButtons[i]]);
-            //         }
-            //     }
-            // }
             return output;
-        }
-
-
-        private bool AlreadyContains(List<List<int>> output, List<int> newList)
-        {
-            foreach (var list in output)
-            {
-                if (list.Count == newList.Count)
-                {
-                    var equal = true;
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        if (list[i] != newList[i])
-                            equal = false;
-                    }
-                    if (equal) return true;
-                }
-            }
-            return false;
         }
 
         private class QueueEntryIndicator
@@ -343,19 +285,15 @@ public class Day10 : BaseDay
 
             }
 
-
-
             public List<int> JoltageRequirements { get; init; }
             public List<int> CurrentState { get; set; } = new();
             public List<int> ButtonPressCount { get; set; } = new();
             public int TotalButtonPresses => ButtonPressCount.Count();
             public List<int> RemainingJoltageRequirements => CurrentState.Select((x, i) => JoltageRequirements[i] - x).ToList();
             public bool IsInvalid => RemainingJoltageRequirements.Any(x => x < 0);
-
             public bool IsSatisfied => RemainingJoltageRequirements.Where(x => x == 0).Count() == JoltageRequirements.Count;
         }
     }
-
 }
 
 //187 too low
