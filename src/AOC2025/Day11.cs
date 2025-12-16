@@ -1,3 +1,5 @@
+using System.Security.Cryptography.X509Certificates;
+
 public class Day11 : BaseDay
 {
     List<string> _lines = new();
@@ -56,77 +58,34 @@ public class Day11 : BaseDay
         long output = 0;
         graph.EnsureNoCycles();
 
-        var svrParents = graph.FindAllParents("svr");
         Console.WriteLine("Searching for svr to fft");
-        var svrToFFT = graph.FindAllPaths(svrParents, "svr", "fft");
-        Console.WriteLine($"\t {svrToFFT.Count} svr to fft");
+        var svrToFFT = graph.FindAllPathsCount("svr", "fft");
+        Console.WriteLine($"\t {svrToFFT} svr to fft");
 
-        var fftParents = graph.FindAllParents("fft");
         Console.WriteLine("Searching for fft to dac");
-        var fftToDAC = graph.FindAllPaths(fftParents, "fft", "dac");
-        Console.WriteLine($"\t {fftToDAC.Count} fft to dac");
+        var fftToDAC = graph.FindAllPathsCount("fft", "dac");
+        Console.WriteLine($"\t {fftToDAC} fft to dac");
         
-        var dacParents = graph.FindAllParents("dac");
         Console.WriteLine("Searching for dac to out");
-        var dacToOUT = graph.FindAllPaths(dacParents, "dac", "out");
-        Console.WriteLine($"\t {dacToOUT.Count} dac to out");
+        var dacToOUT = graph.FindAllPathsCount("dac", "out");
+        Console.WriteLine($"\t {dacToOUT} dac to out");
 
-        // I was able to determine there are no paths along this branch in my puzzle input, so it's disabled to speed up runtime
-        // The dac->fft leg has 0. so if we get from svr to dac first, then we would not get to fft, and if we get to fft first, it's already been counted above.
-        // I think without this constraint the puzzle would be even harder?
-        
-        // Console.WriteLine("Searching for svr to dac");
-        // var svrToDAC = graph.FindAllPaths(svrParents, "svr", "dac");
-        // Console.WriteLine($"\t {svrToDAC.Count} svr to dac");
+       
+        Console.WriteLine("Searching for svr to dac");
+        var svrToDAC = graph.FindAllPathsCount("svr", "dac");
+        Console.WriteLine($"\t {svrToDAC} svr to dac");
 
-        // Console.WriteLine("Searching for dac to fft");
-        // var dacToFFT = graph.FindAllPaths(dacParents, "dac", "fft");
-        // Console.WriteLine($"\t {dacToFFT.Count} dac to fft");
+        Console.WriteLine("Searching for dac to fft");
+        var dacToFFT = graph.FindAllPathsCount("dac", "fft");
+        Console.WriteLine($"\t {dacToFFT} dac to fft");
         
-        // Console.WriteLine("Searching for fft to fft");
-        // var fftToOUT = graph.FindAllPaths(fftParents, "fft", "out");
-        // Console.WriteLine($"\t {fftToOUT.Count} fft to out");
+        Console.WriteLine("Searching for fft to out");
+        var fftToOUT = graph.FindAllPathsCount("fft", "out");
+        Console.WriteLine($"\t {fftToOUT} fft to out");
         
-        output +=  (long)svrToFFT.Count * (long)fftToDAC.Count * (long)dacToOUT.Count;
-        // output +=  (long)svrToDAC.Count * (long)dacToFFT.Count * (long)fftToOUT.Count; 
+        output +=  (long)svrToFFT * (long)fftToDAC * (long)dacToOUT;
+        output +=  (long)svrToDAC * (long)dacToFFT * (long)fftToOUT; 
         return new($"{output}");
-    }
-
-    // This is naive, this enumerates ALL paths from start, only stopping when getting to end. Grows too large. must work backwards from end towards start. 
-    private long CountPathsFrom(Node node1, Node node2, bool passedFFT, bool passedDAC, List<string> history)
-    {
-        // Console.WriteLine($"Counting Paths from {node1.Id} to {node2.Id}. FFT? {passedFFT} DAC? {passedDAC} History Size {history.Count}");
-        long output = 0;
-
-        if (node1.Id == "fft") passedFFT = true;
-        if (node1.Id == "dac") passedDAC = true;
-
-        foreach (var node in node1.NextNodes)
-        {
-            if (node.Id == "out") continue;
-            if (node == node2)
-            {
-                if (passedFFT && passedDAC)
-                {
-                    // We have reached the target, and passed both gates
-                    output++;
-                }
-            }
-            else
-            {
-                if (history.Contains(node.Id)) continue;
-
-                var newHistory = history.ToList();
-                newHistory.Add(node.Id);
-
-                var subResult = CountPathsFrom(node, node2, passedFFT, passedDAC, newHistory);
-                output += subResult;
-
-            }
-        }
-
-        return output;
-
     }
 
     private class Node
@@ -180,7 +139,6 @@ public class Day11 : BaseDay
                     cycleNode = parent[cycleNode];
                 }
                 cyclePath.Reverse();
-                // cyclePath.Add(cycle_start);
 
                 Console.WriteLine("Cycle Found");
                 Console.WriteLine(string.Join(" -> ", cyclePath));
@@ -254,6 +212,34 @@ public class Day11 : BaseDay
                     }
                 }
             }
+            return output;
+        }
+
+        private Dictionary<string, int> _pathCountCache = new();
+        public int FindAllPathsCount(string startId, string endId, Dictionary<string, List<string>>? parents = null)
+        {
+            if(parents == null)
+            {
+                parents = FindAllParents(startId);
+                // _pathCountCache = new();
+            }
+            
+            if(_pathCountCache.ContainsKey($"{startId}-{endId}"))
+                return _pathCountCache[$"{startId}-{endId}"];
+
+            var output = 0;
+            if (startId == endId)
+            {
+                output++;
+            }
+            else
+            {
+                foreach (var x in parents[endId])
+                {
+                    output += FindAllPathsCount(startId, x, parents);
+                }
+            }
+            _pathCountCache[$"{startId}-{endId}"] = output;
             return output;
 
         }
